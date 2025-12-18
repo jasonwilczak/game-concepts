@@ -1,0 +1,3522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last God - Prototype</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --marble: #E8E4DC;
+            --olympian-blue: #2C5F9E;
+            --divine-gold: #D4AF37;
+            --lightning: #00D9FF;
+            --blood-red: #C41E3A;
+            --shadow: #1A1A2E;
+            
+            /* Pagan Nature Theme */
+            --forest-green: #2D5016;
+            --moss-green: #4A7C2C;
+            --earth-brown: #5C4033;
+            --leaf-green: #7CB342;
+            --bark-brown: #3E2723;
+            --nature-gold: #C9A961;
+        }
+        
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: linear-gradient(135deg, var(--shadow) 0%, var(--olympian-blue) 100%);
+            color: var(--marble);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        #gameContainer {
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+                        inset 0 0 0 2px var(--divine-gold);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--shadow);
+            width: calc(100vw - 40px);
+            height: calc(100vh - 40px);
+            max-width: 1920px;
+            max-height: 1080px;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .stat-block {
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid var(--divine-gold);
+            padding: 12px 16px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            color: var(--divine-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--marble);
+        }
+        
+        .health-bar {
+            width: 200px;
+            height: 24px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid var(--divine-gold);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blood-red), #FF6B6B);
+            transition: width 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+        
+        .health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--marble);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        #levelTitle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cinzel', serif;
+            font-size: 48px;
+            color: var(--divine-gold);
+            text-shadow: 0 0 20px var(--lightning),
+                         0 4px 8px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            animation: fadeInOut 3s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        #upgradeScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 46, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        #upgradeScreen.active {
+            display: flex;
+            pointer-events: all;
+        }
+        
+        .upgrade-title {
+            font-family: 'Cinzel', serif;
+            font-size: 36px;
+            color: var(--divine-gold);
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px var(--lightning);
+        }
+        
+        .upgrade-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1000px;
+            width: 90%;
+        }
+        
+        .upgrade-card {
+            background: linear-gradient(135deg, rgba(44, 95, 158, 0.3), rgba(26, 26, 46, 0.8));
+            border: 2px solid var(--divine-gold);
+            padding: 24px;
+            border-radius: 8px;
+            width: 240px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: all;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .upgrade-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--lightning);
+            box-shadow: 0 8px 24px rgba(0, 217, 255, 0.4);
+        }
+        
+        .upgrade-name {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: var(--divine-gold);
+            margin-bottom: 12px;
+        }
+        
+        .upgrade-description {
+            font-size: 12px;
+            color: var(--marble);
+            line-height: 1.6;
+        }
+        
+        #deathScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        #deathScreen.active {
+            display: flex;
+            pointer-events: all;
+        }
+        
+        .death-title {
+            font-family: 'Cinzel', serif;
+            font-size: 64px;
+            color: var(--blood-red);
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px var(--blood-red);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        .death-stats {
+            font-size: 18px;
+            color: var(--marble);
+            margin-bottom: 40px;
+            text-align: center;
+            line-height: 1.8;
+        }
+        
+        .restart-button {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--divine-gold), #B8941C);
+            border: 2px solid var(--divine-gold);
+            color: var(--shadow);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: all;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+        
+        .restart-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.6);
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid var(--divine-gold);
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+            color: var(--marble);
+        }
+        
+        .key {
+            display: inline-block;
+            background: var(--divine-gold);
+            color: var(--shadow);
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin: 0 4px;
+            font-weight: 600;
+        }
+        
+        /* Class Selection Screen */
+        #classSelection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--shadow) 0%, #2C1810 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        #classSelection.hidden {
+            display: none;
+        }
+        
+        .selection-title {
+            font-family: 'Cinzel', serif;
+            font-size: 52px;
+            color: var(--divine-gold);
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px var(--divine-gold);
+        }
+        
+        .selection-subtitle {
+            font-size: 16px;
+            color: var(--marble);
+            margin-bottom: 60px;
+            opacity: 0.8;
+        }
+        
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 800px;
+            width: 90%;
+        }
+        
+        .class-card {
+            background: linear-gradient(135deg, rgba(74, 124, 44, 0.2), rgba(26, 26, 46, 0.9));
+            border: 3px solid var(--nature-gold);
+            padding: 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            border-color: var(--leaf-green);
+            box-shadow: 0 12px 36px rgba(124, 179, 66, 0.5);
+            background: linear-gradient(135deg, rgba(74, 124, 44, 0.4), rgba(26, 26, 46, 0.9));
+        }
+        
+        .class-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .class-name {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            color: var(--nature-gold);
+            margin-bottom: 12px;
+        }
+        
+        .class-description {
+            font-size: 13px;
+            color: var(--marble);
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+        
+        .class-stats {
+            font-size: 11px;
+            color: var(--leaf-green);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Realm Selection Screen */
+        #realmSelection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--shadow) 0%, var(--forest-green) 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99;
+        }
+        
+        #realmSelection.active {
+            display: flex;
+        }
+        
+        .realm-grid {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1000px;
+            width: 90%;
+        }
+        
+        .realm-card {
+            background: linear-gradient(135deg, rgba(45, 80, 22, 0.3), rgba(26, 26, 46, 0.9));
+            border: 3px solid var(--nature-gold);
+            padding: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 220px;
+            position: relative;
+        }
+        
+        .realm-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #555;
+        }
+        
+        .realm-card.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+        }
+        
+        .realm-card:not(.locked):hover {
+            transform: translateY(-12px) scale(1.05);
+            border-color: var(--leaf-green);
+            box-shadow: 0 12px 36px rgba(124, 179, 66, 0.5);
+        }
+        
+        .realm-name {
+            font-family: 'Cinzel', serif;
+            font-size: 28px;
+            color: var(--nature-gold);
+            margin-bottom: 16px;
+        }
+        
+        .realm-description {
+            font-size: 14px;
+            color: var(--marble);
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        /* Class Preview Modal */
+        #classPreview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 101;
+            padding: 40px;
+        }
+        
+        #classPreview.active {
+            display: flex;
+        }
+        
+        .preview-container {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(45, 80, 22, 0.3));
+            border: 3px solid var(--nature-gold);
+            border-radius: 16px;
+            padding: 48px;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .preview-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .preview-class-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .preview-class-name {
+            font-family: 'Cinzel', serif;
+            font-size: 42px;
+            color: var(--nature-gold);
+            margin-bottom: 12px;
+        }
+        
+        .preview-class-type {
+            font-size: 16px;
+            color: var(--leaf-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-class-desc {
+            font-size: 15px;
+            color: var(--marble);
+            line-height: 1.8;
+            opacity: 0.9;
+        }
+        
+        .preview-skills-title {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            color: var(--nature-gold);
+            margin: 32px 0 20px 0;
+            text-align: center;
+        }
+        
+        .preview-skill {
+            background: rgba(26, 26, 46, 0.5);
+            border: 2px solid var(--leaf-green);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .preview-skill:hover {
+            border-color: var(--nature-gold);
+            transform: translateX(8px);
+        }
+        
+        .preview-skill-name {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: var(--nature-gold);
+            margin-bottom: 8px;
+        }
+        
+        .preview-skill-effect {
+            font-size: 12px;
+            color: var(--leaf-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        
+        .preview-skill-desc {
+            font-size: 13px;
+            color: var(--marble);
+            line-height: 1.6;
+            opacity: 0.85;
+        }
+        
+        .preview-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+        
+        .preview-button {
+            flex: 1;
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            padding: 14px 32px;
+            border: 2px solid;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .preview-button.back {
+            background: transparent;
+            border-color: #888;
+            color: #888;
+        }
+        
+        .preview-button.back:hover {
+            border-color: var(--marble);
+            color: var(--marble);
+            transform: translateY(-4px);
+        }
+        
+        .preview-button.confirm {
+            background: linear-gradient(135deg, var(--nature-gold), #B8941C);
+            border-color: var(--nature-gold);
+            color: var(--shadow);
+        }
+        
+        .preview-button.confirm:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(201, 169, 97, 0.6);
+        }
+        
+        /* Evolution Selection Screen */
+        #evolutionScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 102;
+        }
+        
+        #evolutionScreen.active {
+            display: flex;
+            pointer-events: all;
+        }
+        
+        .evolution-title {
+            font-family: 'Cinzel', serif;
+            font-size: 56px;
+            color: var(--divine-gold);
+            margin-bottom: 20px;
+            text-shadow: 0 0 40px var(--divine-gold);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .evolution-subtitle {
+            font-size: 20px;
+            color: var(--marble);
+            margin-bottom: 60px;
+            opacity: 0.9;
+        }
+        
+        .evolution-grid {
+            display: flex;
+            gap: 40px;
+            max-width: 1200px;
+        }
+        
+        .evolution-card {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(45, 80, 22, 0.2));
+            border: 3px solid var(--divine-gold);
+            padding: 40px;
+            border-radius: 16px;
+            width: 400px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        
+        .evolution-card:hover {
+            transform: translateY(-16px) scale(1.05);
+            box-shadow: 0 16px 48px rgba(212, 175, 55, 0.6);
+            border-color: var(--lightning);
+        }
+        
+        .evolution-name {
+            font-family: 'Cinzel', serif;
+            font-size: 36px;
+            color: var(--divine-gold);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .evolution-type {
+            font-size: 14px;
+            color: var(--leaf-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .evolution-description {
+            font-size: 14px;
+            color: var(--marble);
+            line-height: 1.8;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+        
+        .evolution-bonuses {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .evolution-bonus-title {
+            font-size: 12px;
+            color: var(--divine-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .evolution-bonus-item {
+            font-size: 13px;
+            color: var(--leaf-green);
+            margin-bottom: 6px;
+        }
+        
+        .evolution-new-skill {
+            border: 2px solid var(--lightning);
+            border-radius: 8px;
+            padding: 16px;
+            background: rgba(0, 217, 255, 0.1);
+        }
+        
+        .evolution-skill-label {
+            font-size: 10px;
+            color: var(--lightning);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .evolution-skill-name {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: var(--lightning);
+            margin-bottom: 8px;
+        }
+        
+        .evolution-skill-desc {
+            font-size: 12px;
+            color: var(--marble);
+            opacity: 0.9;
+        }
+        
+        .preview-evolutions {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 2px solid rgba(201, 169, 97, 0.3);
+        }
+        
+        .preview-evolutions-title {
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            color: var(--divine-gold);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .preview-evolution-paths {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .preview-evolution-path {
+            flex: 1;
+            background: rgba(26, 26, 46, 0.5);
+            border: 2px solid var(--leaf-green);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        
+        .preview-evolution-path-name {
+            font-family: 'Cinzel', serif;
+            font-size: 16px;
+            color: var(--nature-gold);
+            margin-bottom: 8px;
+        }
+        
+        .preview-evolution-path-desc {
+            font-size: 11px;
+            color: var(--marble);
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+        
+        /* Progression Tracker */
+        #progressionTracker {
+            position: absolute;
+            right: 20px;
+            top: 80px;
+            width: 280px;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.85), rgba(45, 80, 22, 0.2));
+            border: 2px solid var(--divine-gold);
+            border-radius: 8px;
+            padding: 16px;
+            display: none;
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+        
+        #progressionTracker.active {
+            display: block;
+        }
+        
+        .tracker-header {
+            font-family: 'Cinzel', serif;
+            font-size: 16px;
+            color: var(--divine-gold);
+            margin-bottom: 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(201, 169, 97, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .tracker-section {
+            margin-bottom: 12px;
+        }
+        
+        .tracker-section-title {
+            font-size: 11px;
+            color: var(--leaf-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .tracker-class-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .tracker-class-icon {
+            font-size: 28px;
+        }
+        
+        .tracker-class-name {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: var(--nature-gold);
+        }
+        
+        .tracker-evolution-badge {
+            font-size: 10px;
+            color: var(--lightning);
+            background: rgba(0, 217, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--lightning);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tracker-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 11px;
+        }
+        
+        .tracker-stat {
+            color: var(--marble);
+            opacity: 0.9;
+        }
+        
+        .tracker-stat-label {
+            color: var(--leaf-green);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tracker-stat-value {
+            color: var(--nature-gold);
+            font-weight: 600;
+        }
+        
+        .tracker-skills-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .tracker-skill {
+            font-size: 10px;
+            color: var(--marble);
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            border-left: 2px solid var(--leaf-green);
+        }
+        
+        .tracker-skill.evolution {
+            border-left-color: var(--lightning);
+        }
+        
+        .tracker-upgrades-count {
+            font-size: 12px;
+            color: var(--nature-gold);
+            text-align: center;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        
+        .tracker-toggle {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(45, 80, 22, 0.3));
+            border: 2px solid var(--divine-gold);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 11;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+        
+        .tracker-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(201, 169, 97, 0.4);
+        }
+        
+        .tracker-toggle-icon {
+            font-size: 20px;
+        }
+        
+        /* Custom scrollbar for tracker */
+        #progressionTracker::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #progressionTracker::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+        
+        #progressionTracker::-webkit-scrollbar-thumb {
+            background: var(--divine-gold);
+            border-radius: 3px;
+        }
+        
+        #progressionTracker::-webkit-scrollbar-thumb:hover {
+            background: var(--lightning);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Class Selection Screen -->
+        <div id="classSelection">
+            <div class="selection-title">THE LAST GOD</div>
+            <div class="selection-subtitle">Choose Your Path to Divinity</div>
+            <div class="class-grid">
+                <div class="class-card" onclick="game.previewClass('priest')">
+                    <div class="class-icon">✟</div>
+                    <div class="class-name">PRIEST</div>
+                    <div class="class-description">Channel divine power through faith and healing. Ranged holy projectiles.</div>
+                    <div class="class-stats">Health: High • Damage: Medium • Speed: Medium</div>
+                </div>
+                <div class="class-card" onclick="game.previewClass('thief')">
+                    <div class="class-icon">🗡</div>
+                    <div class="class-name">THIEF</div>
+                    <div class="class-description">Strike from shadows with speed and precision. Fast melee attacks.</div>
+                    <div class="class-stats">Health: Low • Damage: High • Speed: Very High</div>
+                </div>
+                <div class="class-card" onclick="game.previewClass('fighter')">
+                    <div class="class-icon">⚔</div>
+                    <div class="class-name">FIGHTER</div>
+                    <div class="class-description">Endure through raw strength and resilience. Heavy melee sweeps.</div>
+                    <div class="class-stats">Health: Very High • Damage: Medium • Speed: Low</div>
+                </div>
+                <div class="class-card" onclick="game.previewClass('mage')">
+                    <div class="class-icon">✧</div>
+                    <div class="class-name">MAGE</div>
+                    <div class="class-description">Wield arcane forces with devastating power. Long-range projectiles.</div>
+                    <div class="class-stats">Health: Very Low • Damage: Very High • Speed: Medium</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Class Preview Modal -->
+        <div id="classPreview">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-class-icon" id="previewIcon"></div>
+                    <div class="preview-class-name" id="previewName"></div>
+                    <div class="preview-class-type" id="previewType"></div>
+                    <div class="preview-class-desc" id="previewDesc"></div>
+                </div>
+                
+                <div class="preview-skills-title">✦ Unique Class Skills</div>
+                <div id="previewSkills"></div>
+                
+                <div class="preview-evolutions">
+                    <div class="preview-evolutions-title">⚡ Evolution Paths (at 500 Essence)</div>
+                    <div class="preview-evolution-paths" id="previewEvolutionPaths"></div>
+                </div>
+                
+                <div class="preview-buttons">
+                    <div class="preview-button back" onclick="game.closePreview()">← Back</div>
+                    <div class="preview-button confirm" onclick="game.confirmClass()">Select Class →</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Evolution Selection Screen -->
+        <div id="evolutionScreen">
+            <div class="evolution-title">⚡ EVOLUTION ⚡</div>
+            <div class="evolution-subtitle">Choose your path and transcend your limits</div>
+            <div class="evolution-grid" id="evolutionOptions"></div>
+        </div>
+        
+        <!-- Realm Selection Screen -->
+        <div id="realmSelection">
+            <div class="selection-title">SELECT YOUR DESCENT</div>
+            <div class="selection-subtitle">Choose which pantheon to challenge</div>
+            <div class="realm-grid">
+                <div class="realm-card" onclick="game.selectRealm('pagan')">
+                    <div class="realm-name">PAGAN</div>
+                    <div class="realm-description">Ancient forests where nature spirits dwell. The old ways still hold power here.</div>
+                </div>
+                <div class="realm-card locked">
+                    <div class="realm-name">EGYPTIAN</div>
+                    <div class="realm-description">Golden tombs of the Duat. The gods of sand and sun await.</div>
+                </div>
+                <div class="realm-card locked">
+                    <div class="realm-name">GREEK</div>
+                    <div class="realm-description">Marble halls of Olympus. Where thunder echoes through divine corridors.</div>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Progression Tracker Toggle -->
+        <div class="tracker-toggle" onclick="game.toggleTracker()" title="Show Build Info">
+            <div class="tracker-toggle-icon">📊</div>
+        </div>
+        
+        <!-- Progression Tracker Panel -->
+        <div id="progressionTracker">
+            <div class="tracker-header">BUILD PROGRESSION</div>
+            
+            <div class="tracker-section">
+                <div class="tracker-section-title">Class</div>
+                <div class="tracker-class-info">
+                    <div class="tracker-class-icon" id="trackerClassIcon"></div>
+                    <div>
+                        <div class="tracker-class-name" id="trackerClassName"></div>
+                        <div class="tracker-evolution-badge" id="trackerEvolution" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tracker-section">
+                <div class="tracker-section-title">Core Stats</div>
+                <div class="tracker-stats" id="trackerStats"></div>
+            </div>
+            
+            <div class="tracker-section">
+                <div class="tracker-section-title">Active Skills</div>
+                <div class="tracker-skills-list" id="trackerSkills"></div>
+            </div>
+            
+            <div class="tracker-section">
+                <div class="tracker-section-title">Progress</div>
+                <div class="tracker-upgrades-count" id="trackerProgress"></div>
+            </div>
+        </div>
+        
+        <div id="ui">
+            <div id="hud">
+                <div class="stat-block">
+                    <div class="stat-label">Floor</div>
+                    <div class="stat-value" id="floorDisplay">1</div>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">Health</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthFill" style="width: 100%"></div>
+                        <div class="health-text" id="healthText">100 / 100</div>
+                    </div>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">Coins</div>
+                    <div class="stat-value" id="coinsDisplay">0</div>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">Essence</div>
+                    <div class="stat-value" id="essenceDisplay">0</div>
+                </div>
+            </div>
+            
+            <div id="levelTitle"></div>
+            
+            <div id="upgradeScreen">
+                <div class="upgrade-title">Divine Blessing</div>
+                <div class="upgrade-options" id="upgradeOptions"></div>
+            </div>
+            
+            <div id="deathScreen">
+                <div class="death-title">MORTAL END</div>
+                <div class="death-stats" id="deathStats"></div>
+                <button class="restart-button" onclick="game.restart()">DESCEND AGAIN</button>
+            </div>
+            
+            <div id="instructions">
+                Move: <span class="key">WASD</span> or <span class="key">Arrow Keys</span> • Auto-attack (melee or ranged) • Boss every 10 floors
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const game = {
+            canvas: null,
+            ctx: null,
+            width: 0,  // Will be set by resizeCanvas
+            height: 0,  // Will be set by resizeCanvas
+            
+            // Game state
+            player: null,
+            enemies: [],
+            projectiles: [],
+            enemyProjectiles: [],  // Projectiles fired by enemies
+            particles: [],
+            meleeAttacks: [],  // For melee class attacks
+            lootDrops: [],  // Coins and health pickups
+            boss: null,
+            isBossLevel: false,
+            level: 1,
+            essence: 0,
+            totalEssence: 0,
+            coins: 0,  // New currency for upgrades
+            persistentCoins: 0,  // Coins that carry over between runs
+            persistentEssence: 0,  // 20% of total essence carries over
+            kills: 0,
+            time: 0,
+            isPaused: false,
+            isDead: false,
+            
+            // Obstacles and special entities
+            obstacles: [],  // Trees, water, etc.
+            allies: [],  // NPC companions
+            demigodSpawned: false,  // Track if demigod spawned this floor bracket
+            
+            // Player skills acquired
+            playerSkills: {
+                // Class skills
+                multiShot: false,      // Priest: Fire 3 projectiles
+                holyNova: false,       // Priest: Periodic area heal
+                shadowStrike: false,   // Thief: Crit chance boost
+                poisonBlade: false,    // Thief: DoT on hits
+                whirlwind: false,      // Fighter: 360 degree melee
+                steadfast: false,      // Fighter: Damage reduction
+                spellPierce: false,    // Mage: Projectiles pierce enemies
+                arcaneBlast: false,    // Mage: Chance for bonus projectile
+                
+                // General skills (tracked for stacking)
+                magnetLevel: 0,        // Loot magnet upgrades
+                speedBoosts: 0,        // Movement speed boosts
+                essenceBoosts: 0       // Essence gain multiplier
+            },
+            
+            // Selected class and realm
+            selectedClass: null,
+            selectedRealm: null,
+            previewingClass: null,  // Track which class is being previewed
+            evolution: null,  // Track which evolution path was chosen
+            canEvolve: false,  // Whether player has reached evolution threshold
+            evolutionThreshold: 500,  // Essence needed to evolve
+            
+            // Class definitions
+            classes: {
+                priest: {
+                    name: 'Priest',
+                    icon: '✟',
+                    maxHealth: 120,
+                    damage: 12,
+                    fireRate: 600,
+                    moveSpeed: 2.8,
+                    projectileSpeed: 5,
+                    color: '#FFD700',
+                    attackType: 'projectile',
+                    attackRange: 300,
+                    description: 'A divine warrior who channels holy power through ranged attacks. Balanced stats make the Priest adaptable to any situation.',
+                    playStyle: 'Ranged Support',
+                    uniqueSkills: [
+                        { name: 'Multi-Shot', effect: 'Attack Pattern', desc: 'Fire 3 projectiles in a spread pattern instead of one' },
+                        { name: 'Holy Nova', effect: 'Passive Healing', desc: 'Periodically heal yourself over time (+5 HP every 3 sec)' }
+                    ],
+                    evolutions: {
+                        cleric: {
+                            name: 'Cleric',
+                            description: 'A holy warrior who smites enemies with righteous fury. Combines healing with devastating offensive power.',
+                            bonuses: { damage: 1.5, fireRate: 0.8, maxHealth: 1.2 },
+                            newSkill: { name: 'Righteous Flames', effect: 'Burning Projectiles', desc: 'Your attacks burn enemies for additional damage over time' }
+                        },
+                        arbiter: {
+                            name: 'Arbiter',
+                            description: 'A divine judge wielding celestial magic. Focuses on area control and protective barriers.',
+                            bonuses: { damage: 1.2, maxHealth: 1.3, moveSpeed: 1.1 },
+                            newSkill: { name: 'Divine Barrier', effect: 'Damage Shield', desc: 'Periodically gain a shield that absorbs damage' }
+                        }
+                    }
+                },
+                thief: {
+                    name: 'Thief',
+                    icon: '🗡',
+                    maxHealth: 80,
+                    damage: 18,
+                    fireRate: 350,
+                    moveSpeed: 4.2,
+                    projectileSpeed: 7,
+                    color: '#8B4789',
+                    attackType: 'melee',
+                    attackRange: 60,
+                    description: 'A lightning-fast assassin who strikes from close range. High damage and mobility come at the cost of survivability.',
+                    playStyle: 'Melee Assassin',
+                    uniqueSkills: [
+                        { name: 'Shadow Strike', effect: 'Critical Hits', desc: '25% chance to deal double damage on attacks' },
+                        { name: 'Poison Blade', effect: 'Damage Over Time', desc: 'Your attacks poison enemies, dealing damage over several seconds' }
+                    ],
+                    evolutions: {
+                        assassin: {
+                            name: 'Assassin',
+                            description: 'A master of single-target elimination. Executes wounded enemies and deals massive critical damage.',
+                            bonuses: { damage: 1.6, critChance: 0.15, critMultiplier: 0.5 },
+                            newSkill: { name: 'Execute', effect: 'Instant Kill', desc: 'Deal 3x damage to enemies below 30% health' }
+                        },
+                        rogue: {
+                            name: 'Rogue',
+                            description: 'A versatile trickster with area control. Uses shadow techniques to damage multiple enemies at once.',
+                            bonuses: { damage: 1.3, attackRange: 1.4, moveSpeed: 1.15 },
+                            newSkill: { name: 'Blade Fan', effect: 'AoE Melee', desc: 'Attacks hit in a wider arc, damaging multiple enemies' }
+                        }
+                    }
+                },
+                fighter: {
+                    name: 'Fighter',
+                    icon: '⚔',
+                    maxHealth: 150,
+                    damage: 14,
+                    fireRate: 700,
+                    moveSpeed: 2.2,
+                    projectileSpeed: 4.5,
+                    color: '#DC143C',
+                    attackType: 'melee',
+                    attackRange: 80,
+                    description: 'An unstoppable tank built to take punishment. Massive health pool and damage reduction make the Fighter nearly unkillable.',
+                    playStyle: 'Melee Tank',
+                    uniqueSkills: [
+                        { name: 'Whirlwind', effect: 'Area Control', desc: 'Massively increase your melee attack radius - hit everything around you' },
+                        { name: 'Steadfast', effect: 'Damage Reduction', desc: 'Take 25% less damage from all sources' }
+                    ],
+                    evolutions: {
+                        barbarian: {
+                            name: 'Barbarian',
+                            description: 'A berserker who thrives in chaos. Deals massive damage and heals from combat, growing stronger as health decreases.',
+                            bonuses: { damage: 1.7, attackRange: 1.3, fireRate: 0.85 },
+                            newSkill: { name: 'Blood Rage', effect: 'Lifesteal', desc: 'Heal for 15% of damage dealt. +20% damage when below 50% health' }
+                        },
+                        knight: {
+                            name: 'Knight',
+                            description: 'An armored fortress focused on endurance. Unparalleled survivability with consistent damage output.',
+                            bonuses: { maxHealth: 1.5, damage: 1.2, damageReduction: 0.15 },
+                            newSkill: { name: 'Shield Wall', effect: 'Block', desc: '20% chance to completely block incoming damage' }
+                        }
+                    }
+                },
+                mage: {
+                    name: 'Mage',
+                    icon: '✧',
+                    maxHealth: 70,
+                    damage: 25,
+                    fireRate: 800,
+                    moveSpeed: 2.5,
+                    projectileSpeed: 6,
+                    color: '#4169E1',
+                    attackType: 'projectile',
+                    attackRange: 350,
+                    description: 'A devastating glass cannon who obliterates enemies from range. Extreme damage output balanced by extremely low health.',
+                    playStyle: 'Ranged Artillery',
+                    uniqueSkills: [
+                        { name: 'Spell Pierce', effect: 'Projectile Penetration', desc: 'Your projectiles pass through enemies, hitting multiple targets' },
+                        { name: 'Arcane Blast', effect: 'Bonus Attacks', desc: '30% chance to fire an additional projectile with each attack' }
+                    ],
+                    evolutions: {
+                        sorcerer: {
+                            name: 'Sorcerer',
+                            description: 'A chaos mage wielding unstable power. Massive area damage with unpredictable but devastating effects.',
+                            bonuses: { damage: 1.8, projectileSpeed: 1.3 },
+                            newSkill: { name: 'Chaos Bolt', effect: 'Explosive AoE', desc: '25% chance for projectiles to explode on impact, damaging nearby enemies' }
+                        },
+                        wizard: {
+                            name: 'Wizard',
+                            description: 'A disciplined master of focused magic. Surgical precision with amplified single-target destruction.',
+                            bonuses: { damage: 2.0, fireRate: 0.9, critChance: 0.2 },
+                            newSkill: { name: 'Arcane Focus', effect: 'Amplified Damage', desc: 'Every 3rd shot deals 3x damage and cannot miss' }
+                        }
+                    }
+                }
+            },
+            
+            // Realm definitions
+            realms: {
+                pagan: {
+                    name: 'Pagan Wilds',
+                    bgColor: '#1A2E1A',
+                    gridColor: 'rgba(124, 179, 66, 0.1)',
+                    enemyColor: '#5C4033',
+                    enemyAccent: '#7CB342',
+                    particleColor: '#C9A961'
+                },
+                egyptian: {
+                    name: 'Egyptian Duat',
+                    bgColor: '#2E2416',
+                    gridColor: 'rgba(212, 175, 55, 0.1)',
+                    enemyColor: '#8B6914',
+                    enemyAccent: '#D4AF37',
+                    particleColor: '#FFD700'
+                },
+                greek: {
+                    name: 'Greek Olympus',
+                    bgColor: '#16213E',
+                    gridColor: 'rgba(232, 228, 220, 0.05)',
+                    enemyColor: '#8B4513',
+                    enemyAccent: '#D4AF37',
+                    particleColor: '#D4AF37'
+                }
+            },
+            
+            // Player stats (will be set from class)
+            maxHealth: 100,
+            health: 100,
+            damage: 10,
+            fireRate: 500,
+            projectileSpeed: 5,
+            moveSpeed: 3,
+            lootMagnetRange: 50,  // Range to auto-collect loot
+            critChance: 0,  // 0-1 chance for critical hits
+            critMultiplier: 2,  // Damage multiplier on crits
+            damageReduction: 0,  // Additional damage reduction
+            evolutionMechanics: null,  // Which evolution mechanics are active
+            shotCounter: 0,  // For wizard arcane focus
+            shieldActive: false,  // For arbiter divine barrier
+            shieldAmount: 0,  // Shield HP
+            
+            // Timers
+            lastShot: 0,
+            lastEnemySpawn: 0,
+            enemySpawnRate: 2000,
+            
+            // Input
+            keys: {},
+            
+            toggleTracker() {
+                const tracker = document.getElementById('progressionTracker');
+                tracker.classList.toggle('active');
+                if (tracker.classList.contains('active')) {
+                    this.updateTracker();
+                }
+            },
+            
+            updateTracker() {
+                if (!this.selectedClass) return;
+                
+                const classData = this.classes[this.selectedClass];
+                
+                // Update class info
+                document.getElementById('trackerClassIcon').textContent = classData.icon;
+                document.getElementById('trackerClassName').textContent = classData.name;
+                
+                // Update evolution badge
+                if (this.evolution) {
+                    const evoData = classData.evolutions[this.evolution];
+                    document.getElementById('trackerEvolution').textContent = `⚡ ${evoData.name}`;
+                    document.getElementById('trackerEvolution').style.display = 'block';
+                } else {
+                    document.getElementById('trackerEvolution').style.display = 'none';
+                }
+                
+                // Update stats
+                const statsContainer = document.getElementById('trackerStats');
+                statsContainer.innerHTML = `
+                    <div class="tracker-stat">
+                        <div class="tracker-stat-label">HP</div>
+                        <div class="tracker-stat-value">${Math.ceil(this.health)} / ${this.maxHealth}</div>
+                    </div>
+                    <div class="tracker-stat">
+                        <div class="tracker-stat-label">Damage</div>
+                        <div class="tracker-stat-value">${this.damage}</div>
+                    </div>
+                    <div class="tracker-stat">
+                        <div class="tracker-stat-label">Attack Speed</div>
+                        <div class="tracker-stat-value">${(1000 / this.fireRate).toFixed(1)}/s</div>
+                    </div>
+                    <div class="tracker-stat">
+                        <div class="tracker-stat-label">Move Speed</div>
+                        <div class="tracker-stat-value">${this.moveSpeed.toFixed(1)}</div>
+                    </div>
+                    <div class="tracker-stat">
+                        <div class="tracker-stat-label">Crit Chance</div>
+                        <div class="tracker-stat-value">${Math.round(this.critChance * 100)}%</div>
+                    </div>
+                    <div class="tracker-stat">
+                        <div class="tracker-stat-label">Crit Damage</div>
+                        <div class="tracker-stat-value">${this.critMultiplier}x</div>
+                    </div>
+                `;
+                
+                // Update active skills
+                const skillsContainer = document.getElementById('trackerSkills');
+                skillsContainer.innerHTML = '';
+                
+                // Class skills
+                if (this.playerSkills.multiShot) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Multi-Shot</div>';
+                }
+                if (this.playerSkills.holyNova) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Holy Nova</div>';
+                }
+                if (this.playerSkills.shadowStrike) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Shadow Strike</div>';
+                }
+                if (this.playerSkills.poisonBlade) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Poison Blade</div>';
+                }
+                if (this.playerSkills.whirlwind) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Whirlwind</div>';
+                }
+                if (this.playerSkills.steadfast) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Steadfast</div>';
+                }
+                if (this.playerSkills.spellPierce) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Spell Pierce</div>';
+                }
+                if (this.playerSkills.arcaneBlast) {
+                    skillsContainer.innerHTML += '<div class="tracker-skill">✦ Arcane Blast</div>';
+                }
+                
+                // Evolution skill
+                if (this.evolution && classData.evolutions[this.evolution]) {
+                    const evoSkill = classData.evolutions[this.evolution].newSkill;
+                    skillsContainer.innerHTML += `<div class="tracker-skill evolution">⚡ ${evoSkill.name}</div>`;
+                }
+                
+                // General skills
+                if (this.playerSkills.magnetLevel > 0) {
+                    skillsContainer.innerHTML += `<div class="tracker-skill">✦ Loot Magnet x${this.playerSkills.magnetLevel}</div>`;
+                }
+                if (this.playerSkills.speedBoosts > 0) {
+                    skillsContainer.innerHTML += `<div class="tracker-skill">✦ Swift Movement x${this.playerSkills.speedBoosts}</div>`;
+                }
+                if (this.playerSkills.essenceBoosts > 0) {
+                    skillsContainer.innerHTML += `<div class="tracker-skill">✦ Essence Attunement x${this.playerSkills.essenceBoosts}</div>`;
+                }
+                
+                // Update progress
+                document.getElementById('trackerProgress').innerHTML = `
+                    Floor ${this.level} • ${this.kills} Kills<br>
+                    ${this.totalEssence} Total Essence
+                `;
+            },
+            
+            init() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Set canvas size based on container
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Prevent image smoothing for pixel art feel
+                this.ctx.imageSmoothingEnabled = false;
+                
+                this.setupEventListeners();
+                // Don't start game yet - wait for class and realm selection
+            },
+            
+            resizeCanvas() {
+                const container = document.getElementById('gameContainer');
+                const rect = container.getBoundingClientRect();
+                
+                // Set canvas resolution to match display size
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+                
+                // Update game dimensions
+                this.width = rect.width;
+                this.height = rect.height;
+                
+                // Reapply smoothing setting after resize
+                this.ctx.imageSmoothingEnabled = false;
+            },
+            
+            previewClass(classKey) {
+                this.previewingClass = classKey;
+                const classData = this.classes[classKey];
+                
+                // Populate preview modal
+                document.getElementById('previewIcon').textContent = classData.icon;
+                document.getElementById('previewName').textContent = classData.name.toUpperCase();
+                document.getElementById('previewType').textContent = classData.playStyle;
+                document.getElementById('previewDesc').textContent = classData.description;
+                
+                // Build skills list
+                const skillsContainer = document.getElementById('previewSkills');
+                skillsContainer.innerHTML = '';
+                
+                classData.uniqueSkills.forEach(skill => {
+                    const skillDiv = document.createElement('div');
+                    skillDiv.className = 'preview-skill';
+                    skillDiv.innerHTML = `
+                        <div class="preview-skill-name">${skill.name}</div>
+                        <div class="preview-skill-effect">→ ${skill.effect}</div>
+                        <div class="preview-skill-desc">${skill.desc}</div>
+                    `;
+                    skillsContainer.appendChild(skillDiv);
+                });
+                
+                // Build evolution paths preview
+                const evolutionsContainer = document.getElementById('previewEvolutionPaths');
+                evolutionsContainer.innerHTML = '';
+                
+                Object.keys(classData.evolutions).forEach(evoKey => {
+                    const evo = classData.evolutions[evoKey];
+                    const evoDiv = document.createElement('div');
+                    evoDiv.className = 'preview-evolution-path';
+                    evoDiv.innerHTML = `
+                        <div class="preview-evolution-path-name">${evo.name}</div>
+                        <div class="preview-evolution-path-desc">${evo.description}</div>
+                    `;
+                    evolutionsContainer.appendChild(evoDiv);
+                });
+                
+                // Style the preview container with class color
+                const container = document.querySelector('.preview-container');
+                container.style.borderColor = classData.color;
+                
+                // Show the modal
+                document.getElementById('classPreview').classList.add('active');
+            },
+            
+            closePreview() {
+                this.previewingClass = null;
+                document.getElementById('classPreview').classList.remove('active');
+            },
+            
+            confirmClass() {
+                if (this.previewingClass) {
+                    this.selectClass(this.previewingClass);
+                    document.getElementById('classPreview').classList.remove('active');
+                }
+            },
+            
+            checkForEvolution() {
+                // Check if player has reached evolution threshold and hasn't evolved yet
+                if (this.totalEssence >= this.evolutionThreshold && !this.evolution && !this.canEvolve) {
+                    this.canEvolve = true;
+                    this.showEvolutionScreen();
+                }
+            },
+            
+            showEvolutionScreen() {
+                this.isPaused = true;
+                const classData = this.classes[this.selectedClass];
+                const evolutionsContainer = document.getElementById('evolutionOptions');
+                evolutionsContainer.innerHTML = '';
+                
+                // Create cards for each evolution path
+                Object.keys(classData.evolutions).forEach(evoKey => {
+                    const evo = classData.evolutions[evoKey];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'evolution-card';
+                    
+                    // Build bonuses list
+                    let bonusesList = '';
+                    if (evo.bonuses.damage) bonusesList += `<div class="evolution-bonus-item">+${Math.round((evo.bonuses.damage - 1) * 100)}% Damage</div>`;
+                    if (evo.bonuses.maxHealth) bonusesList += `<div class="evolution-bonus-item">+${Math.round((evo.bonuses.maxHealth - 1) * 100)}% Max Health</div>`;
+                    if (evo.bonuses.fireRate) bonusesList += `<div class="evolution-bonus-item">+${Math.round((1 - evo.bonuses.fireRate) * 100)}% Attack Speed</div>`;
+                    if (evo.bonuses.moveSpeed) bonusesList += `<div class="evolution-bonus-item">+${Math.round((evo.bonuses.moveSpeed - 1) * 100)}% Move Speed</div>`;
+                    if (evo.bonuses.attackRange) bonusesList += `<div class="evolution-bonus-item">+${Math.round((evo.bonuses.attackRange - 1) * 100)}% Attack Range</div>`;
+                    if (evo.bonuses.projectileSpeed) bonusesList += `<div class="evolution-bonus-item">+${Math.round((evo.bonuses.projectileSpeed - 1) * 100)}% Projectile Speed</div>`;
+                    if (evo.bonuses.critChance) bonusesList += `<div class="evolution-bonus-item">+${Math.round(evo.bonuses.critChance * 100)}% Crit Chance</div>`;
+                    if (evo.bonuses.critMultiplier) bonusesList += `<div class="evolution-bonus-item">+${Math.round(evo.bonuses.critMultiplier * 100)}% Crit Damage</div>`;
+                    if (evo.bonuses.damageReduction) bonusesList += `<div class="evolution-bonus-item">+${Math.round(evo.bonuses.damageReduction * 100)}% Damage Reduction</div>`;
+                    
+                    card.innerHTML = `
+                        <div class="evolution-name">${evo.name}</div>
+                        <div class="evolution-type">${classData.name} Evolution</div>
+                        <div class="evolution-description">${evo.description}</div>
+                        <div class="evolution-bonuses">
+                            <div class="evolution-bonus-title">⚡ Stat Bonuses</div>
+                            ${bonusesList}
+                        </div>
+                        <div class="evolution-new-skill">
+                            <div class="evolution-skill-label">✦ New Ability Unlocked</div>
+                            <div class="evolution-skill-name">${evo.newSkill.name}</div>
+                            <div class="evolution-skill-desc">${evo.newSkill.desc}</div>
+                        </div>
+                    `;
+                    
+                    card.onclick = () => this.selectEvolution(evoKey);
+                    evolutionsContainer.appendChild(card);
+                });
+                
+                document.getElementById('evolutionScreen').classList.add('active');
+            },
+            
+            selectEvolution(evolutionKey) {
+                this.evolution = evolutionKey;
+                const classData = this.classes[this.selectedClass];
+                const evo = classData.evolutions[evolutionKey];
+                
+                // Apply stat bonuses
+                if (evo.bonuses.damage) this.damage = Math.round(this.damage * evo.bonuses.damage);
+                if (evo.bonuses.maxHealth) {
+                    const oldMax = this.maxHealth;
+                    this.maxHealth = Math.round(this.maxHealth * evo.bonuses.maxHealth);
+                    this.health += (this.maxHealth - oldMax); // Heal for the difference
+                }
+                if (evo.bonuses.fireRate) this.fireRate = Math.round(this.fireRate * evo.bonuses.fireRate);
+                if (evo.bonuses.moveSpeed) this.moveSpeed *= evo.bonuses.moveSpeed;
+                if (evo.bonuses.attackRange) classData.attackRange = Math.round(classData.attackRange * evo.bonuses.attackRange);
+                if (evo.bonuses.projectileSpeed) this.projectileSpeed *= evo.bonuses.projectileSpeed;
+                if (evo.bonuses.critChance) this.critChance += evo.bonuses.critChance;
+                if (evo.bonuses.critMultiplier) this.critMultiplier += evo.bonuses.critMultiplier;
+                if (evo.bonuses.damageReduction) {
+                    // Add to existing damage reduction (Steadfast)
+                    if (!this.damageReduction) this.damageReduction = 0;
+                    this.damageReduction += evo.bonuses.damageReduction;
+                }
+                
+                // Enable evolution-specific mechanics
+                this.evolutionMechanics = evolutionKey;
+                
+                // Visual changes for evolution
+                this.player.size = Math.round(this.player.size * 1.2);
+                this.player.evolved = true;
+                this.player.evolutionGlow = evo.name;
+                
+                // Show notification
+                this.showLevelTitle(`EVOLVED INTO ${evo.name.toUpperCase()}!`);
+                
+                // Update tracker
+                this.updateTracker();
+                
+                // Close evolution screen
+                document.getElementById('evolutionScreen').classList.remove('active');
+                this.isPaused = false;
+                this.canEvolve = false;
+            },
+            
+            selectClass(classKey) {
+                this.selectedClass = classKey;
+                const classData = this.classes[classKey];
+                
+                // Apply class stats
+                this.maxHealth = classData.maxHealth;
+                this.health = classData.maxHealth;
+                this.damage = classData.damage;
+                this.fireRate = classData.fireRate;
+                this.moveSpeed = classData.moveSpeed;
+                this.projectileSpeed = classData.projectileSpeed;
+                
+                // Hide class selection, show realm selection
+                document.getElementById('classSelection').classList.add('hidden');
+                document.getElementById('realmSelection').classList.add('active');
+            },
+            
+            selectRealm(realmKey) {
+                this.selectedRealm = realmKey;
+                
+                // Hide realm selection and start game
+                document.getElementById('realmSelection').classList.remove('active');
+                
+                // Show and update tracker
+                document.getElementById('progressionTracker').classList.add('active');
+                this.updateTracker();
+                
+                this.startGame();
+            },
+            
+            setupEventListeners() {
+                window.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                });
+                
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+            },
+            
+            startGame() {
+                // Apply persistent progression from previous run
+                const startingCoins = this.persistentCoins;
+                const startingEssence = this.persistentEssence;
+                
+                this.player = {
+                    x: this.width / 2,
+                    y: this.height / 2,
+                    size: 16,
+                    angle: 0
+                };
+                
+                // Apply carried-over currency
+                this.coins = startingCoins;
+                this.essence = startingEssence;
+                this.totalEssence = startingEssence;
+                
+                // Clear persistent storage (it's been applied)
+                this.persistentCoins = 0;
+                this.persistentEssence = 0;
+                
+                const realm = this.realms[this.selectedRealm];
+                const classData = this.classes[this.selectedClass];
+                
+                let titleText = `${realm.name.toUpperCase()} - ${classData.name.toUpperCase()} DESCENDS`;
+                if (startingCoins > 0 || startingEssence > 0) {
+                    titleText += `\n+${startingCoins} COINS • +${startingEssence} ESSENCE`;
+                }
+                
+                this.showLevelTitle(titleText);
+                this.gameLoop();
+            },
+            
+            restart() {
+                this.enemies = [];
+                this.projectiles = [];
+                this.enemyProjectiles = [];
+                this.particles = [];
+                this.meleeAttacks = [];
+                this.lootDrops = [];
+                this.allies = [];
+                this.obstacles = [];
+                this.boss = null;
+                this.isBossLevel = false;
+                this.demigodSpawned = false;
+                this.level = 1;
+                this.essence = 0;
+                this.totalEssence = 0;
+                this.coins = 0;
+                this.kills = 0;
+                this.time = 0;
+                this.isDead = false;
+                this.isPaused = false;
+                this.lastShot = 0;
+                this.lastEnemySpawn = 0;
+                
+                // Reset player skills
+                this.playerSkills = {
+                    multiShot: false,
+                    holyNova: false,
+                    shadowStrike: false,
+                    poisonBlade: false,
+                    whirlwind: false,
+                    steadfast: false,
+                    spellPierce: false,
+                    arcaneBlast: false,
+                    magnetLevel: 0,
+                    speedBoosts: 0,
+                    essenceBoosts: 0
+                };
+                
+                this.lootMagnetRange = 50;
+                this.critChance = 0;
+                this.critMultiplier = 2;
+                this.damageReduction = 0;
+                this.evolution = null;
+                this.evolutionMechanics = null;
+                this.canEvolve = false;
+                this.shotCounter = 0;
+                this.shieldActive = false;
+                this.shieldAmount = 0;
+                
+                // Reset to class selection
+                this.selectedClass = null;
+                this.selectedRealm = null;
+                this.previewingClass = null;
+                
+                // Hide tracker
+                document.getElementById('progressionTracker').classList.remove('active');
+                
+                document.getElementById('deathScreen').classList.remove('active');
+                document.getElementById('classSelection').classList.remove('hidden');
+            },
+            
+            showLevelTitle(title) {
+                const titleEl = document.getElementById('levelTitle');
+                titleEl.textContent = title;
+                titleEl.style.animation = 'none';
+                setTimeout(() => {
+                    titleEl.style.animation = 'fadeInOut 3s ease-in-out';
+                }, 10);
+            },
+            
+            gameLoop(timestamp = 0) {
+                if (this.isDead) return;
+                
+                if (!this.isPaused) {
+                    this.update(timestamp);
+                }
+                this.render();
+                
+                requestAnimationFrame((t) => this.gameLoop(t));
+            },
+            
+            update(timestamp) {
+                this.time = timestamp;
+                
+                // Update player
+                this.updatePlayer();
+                
+                // Check for boss level
+                if (this.level % 10 === 0 && !this.isBossLevel && !this.boss) {
+                    this.spawnBoss();
+                }
+                
+                // Spawn enemies (not during boss fight)
+                if (!this.isBossLevel && timestamp - this.lastEnemySpawn > this.enemySpawnRate) {
+                    this.spawnEnemy();
+                    this.lastEnemySpawn = timestamp;
+                }
+                
+                // Auto-attack
+                if (timestamp - this.lastShot > this.fireRate) {
+                    this.autoAttack();
+                    this.lastShot = timestamp;
+                }
+                
+                // Holy Nova passive healing (every 3 seconds)
+                if (this.playerSkills.holyNova && timestamp % 3000 < 16) {
+                    this.health = Math.min(this.maxHealth, this.health + 5);
+                    this.createParticles(this.player.x, this.player.y, '#4CAF50', 5);
+                }
+                
+                // Arbiter: Divine Barrier (every 8 seconds)
+                if (this.evolutionMechanics === 'arbiter' && timestamp % 8000 < 16) {
+                    this.shieldActive = true;
+                    this.shieldAmount = this.maxHealth * 0.3; // 30% of max health
+                    this.createParticles(this.player.x, this.player.y, '#00D9FF', 10);
+                }
+                
+                // Update tracker (every 1 second)
+                if (timestamp % 1000 < 16) {
+                    this.updateTracker();
+                }
+                
+                // Update entities
+                this.updateEnemies();
+                this.updateBoss();
+                this.updateAllies();
+                this.updateProjectiles();
+                this.updateEnemyProjectiles();
+                this.updateMeleeAttacks();
+                this.updateLootDrops();
+                this.updateParticles();
+                
+                // Check collisions
+                this.checkCollisions();
+                this.checkLootPickups();
+                
+                // Update UI
+                this.updateUI();
+            },
+            
+            updateLootDrops() {
+                // Remove collected drops
+                for (let i = this.lootDrops.length - 1; i >= 0; i--) {
+                    if (this.lootDrops[i].collected) {
+                        this.lootDrops.splice(i, 1);
+                    }
+                }
+            },
+            
+            checkLootPickups() {
+                for (let i = this.lootDrops.length - 1; i >= 0; i--) {
+                    const drop = this.lootDrops[i];
+                    const dist = this.distance(this.player, drop);
+                    
+                    // Pickup if within magnet range or touching player
+                    if (dist < this.lootMagnetRange || dist < this.player.size + drop.size) {
+                        // Pickup the loot
+                        if (drop.type === 'health') {
+                            this.health = Math.min(this.maxHealth, this.health + drop.value);
+                            this.createParticles(drop.x, drop.y, '#4CAF50', 8);
+                        } else if (drop.type === 'coin') {
+                            this.coins += drop.value;
+                            this.createParticles(drop.x, drop.y, '#FFD700', 8);
+                        }
+                        
+                        this.lootDrops.splice(i, 1);
+                    }
+                }
+            },
+            
+            updateMeleeAttacks() {
+                for (let i = this.meleeAttacks.length - 1; i >= 0; i--) {
+                    const attack = this.meleeAttacks[i];
+                    attack.life--;
+                    
+                    if (attack.life <= 0) {
+                        this.meleeAttacks.splice(i, 1);
+                    }
+                }
+            },
+            
+            updatePlayer() {
+                const speed = this.moveSpeed;
+                let dx = 0, dy = 0;
+                
+                if (this.keys['w'] || this.keys['arrowup']) dy -= 1;
+                if (this.keys['s'] || this.keys['arrowdown']) dy += 1;
+                if (this.keys['a'] || this.keys['arrowleft']) dx -= 1;
+                if (this.keys['d'] || this.keys['arrowright']) dx += 1;
+                
+                // Normalize diagonal movement
+                if (dx !== 0 && dy !== 0) {
+                    dx *= 0.707;
+                    dy *= 0.707;
+                }
+                
+                this.player.x += dx * speed;
+                this.player.y += dy * speed;
+                
+                // Keep player in bounds
+                this.player.x = Math.max(this.player.size, Math.min(this.width - this.player.size, this.player.x));
+                this.player.y = Math.max(this.player.size, Math.min(this.height - this.player.size, this.player.y));
+                
+                // Rotate player towards nearest enemy
+                const nearest = this.getNearestEnemy();
+                if (nearest) {
+                    this.player.angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+                }
+            },
+            
+            getNearestEnemy() {
+                let nearest = null;
+                let minDist = Infinity;
+                
+                for (const enemy of this.enemies) {
+                    const dist = this.distance(this.player, enemy);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = enemy;
+                    }
+                }
+                
+                // Also check boss
+                if (this.boss) {
+                    const dist = this.distance(this.player, this.boss);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = this.boss;
+                    }
+                }
+                
+                return nearest;
+            },
+            
+            autoAttack() {
+                const classData = this.classes[this.selectedClass];
+                
+                if (classData.attackType === 'projectile') {
+                    // Projectile attack
+                    const target = this.getNearestEnemy();
+                    if (!target) return;
+                    
+                    const dist = this.distance(this.player, target);
+                    if (dist > classData.attackRange) return;
+                    
+                    const angle = Math.atan2(target.y - this.player.y, target.x - this.player.x);
+                    
+                    // Check for critical hit
+                    let isCrit = Math.random() < this.critChance;
+                    let damage = isCrit ? this.damage * this.critMultiplier : this.damage;
+                    
+                    // Wizard: Arcane Focus - every 3rd shot
+                    if (this.evolutionMechanics === 'wizard') {
+                        this.shotCounter++;
+                        if (this.shotCounter >= 3) {
+                            damage = this.damage * 3;
+                            isCrit = true; // Visual indicator
+                            this.shotCounter = 0;
+                        }
+                    }
+                    
+                    // Multi-shot for Priest
+                    if (this.playerSkills.multiShot && this.selectedClass === 'priest') {
+                        for (let i = -1; i <= 1; i++) {
+                            const spreadAngle = angle + (i * 0.3);
+                            this.projectiles.push({
+                                x: this.player.x,
+                                y: this.player.y,
+                                vx: Math.cos(spreadAngle) * this.projectileSpeed,
+                                vy: Math.sin(spreadAngle) * this.projectileSpeed,
+                                size: 6,
+                                damage: damage,
+                                pierce: this.playerSkills.spellPierce,
+                                isCrit: isCrit,
+                                chaosBolt: this.evolutionMechanics === 'sorcerer' && Math.random() < 0.25,
+                                righteousFlame: this.evolutionMechanics === 'cleric'
+                            });
+                        }
+                    } else {
+                        // Normal single shot
+                        this.projectiles.push({
+                            x: this.player.x,
+                            y: this.player.y,
+                            vx: Math.cos(angle) * this.projectileSpeed,
+                            vy: Math.sin(angle) * this.projectileSpeed,
+                            size: 6,
+                            damage: damage,
+                            pierce: this.playerSkills.spellPierce,
+                            isCrit: isCrit,
+                            chaosBolt: this.evolutionMechanics === 'sorcerer' && Math.random() < 0.25,
+                            righteousFlame: this.evolutionMechanics === 'cleric'
+                        });
+                        
+                        // Arcane Blast - chance for extra projectile
+                        if (this.playerSkills.arcaneBlast && Math.random() < 0.3) {
+                            const bonusAngle = angle + (Math.random() - 0.5) * 0.5;
+                            this.projectiles.push({
+                                x: this.player.x,
+                                y: this.player.y,
+                                vx: Math.cos(bonusAngle) * this.projectileSpeed,
+                                vy: Math.sin(bonusAngle) * this.projectileSpeed,
+                                size: 8,
+                                damage: damage,
+                                pierce: this.playerSkills.spellPierce,
+                                isCrit: false,
+                                chaosBolt: this.evolutionMechanics === 'sorcerer' && Math.random() < 0.25,
+                                righteousFlame: this.evolutionMechanics === 'cleric'
+                            });
+                        }
+                    }
+                } else if (classData.attackType === 'melee') {
+                    // Melee attack - create area damage effect
+                    const range = this.playerSkills.whirlwind ? 
+                        classData.attackRange * 1.5 : classData.attackRange;
+                    
+                    // Rogue: Blade Fan increases range
+                    const finalRange = this.evolutionMechanics === 'rogue' ? range * 1.2 : range;
+                    
+                    this.meleeAttacks.push({
+                        x: this.player.x,
+                        y: this.player.y,
+                        range: finalRange,
+                        damage: this.damage,
+                        life: 10,
+                        maxLife: 10
+                    });
+                    
+                    let totalDamageDealt = 0; // For barbarian lifesteal
+                    
+                    // Apply damage to all enemies in range
+                    this.enemies.forEach(enemy => {
+                        const dist = this.distance(this.player, enemy);
+                        if (dist < finalRange) {
+                            let isCrit = Math.random() < this.critChance;
+                            let damage = isCrit ? this.damage * this.critMultiplier : this.damage;
+                            
+                            // Barbarian: Blood Rage - bonus damage when low HP
+                            if (this.evolutionMechanics === 'barbarian' && this.health / this.maxHealth < 0.5) {
+                                damage *= 1.2;
+                            }
+                            
+                            // Assassin: Execute - 3x damage to low health enemies
+                            if (this.evolutionMechanics === 'assassin' && enemy.health / enemy.maxHealth < 0.3) {
+                                damage *= 3;
+                                isCrit = true; // Visual indicator
+                            }
+                            
+                            enemy.health -= damage;
+                            totalDamageDealt += damage;
+                            
+                            // Apply poison effect
+                            if (this.playerSkills.poisonBlade && !enemy.poisoned) {
+                                enemy.poisoned = true;
+                                enemy.poisonTicks = 5;
+                                enemy.poisonDamage = this.damage * 0.2;
+                            }
+                            
+                            this.createParticles(enemy.x, enemy.y, classData.color, isCrit ? 6 : 3);
+                        }
+                    });
+                    
+                    // Barbarian: Blood Rage - lifesteal
+                    if (this.evolutionMechanics === 'barbarian' && totalDamageDealt > 0) {
+                        const healing = totalDamageDealt * 0.15;
+                        this.health = Math.min(this.maxHealth, this.health + healing);
+                        this.createParticles(this.player.x, this.player.y, '#00FF00', 5);
+                    }
+                    
+                    // Also damage boss if in range
+                    if (this.boss) {
+                        const dist = this.distance(this.player, this.boss);
+                        if (dist < finalRange) {
+                            let isCrit = Math.random() < this.critChance;
+                            let damage = isCrit ? this.damage * this.critMultiplier : this.damage;
+                            
+                            // Barbarian: Blood Rage
+                            if (this.evolutionMechanics === 'barbarian') {
+                                if (this.health / this.maxHealth < 0.5) damage *= 1.2;
+                                const healing = damage * 0.15;
+                                this.health = Math.min(this.maxHealth, this.health + healing);
+                            }
+                            
+                            // Assassin: Execute
+                            if (this.evolutionMechanics === 'assassin' && this.boss.health / this.boss.maxHealth < 0.3) {
+                                damage *= 3;
+                                isCrit = true;
+                            }
+                            
+                            this.boss.health -= damage;
+                            this.createParticles(this.boss.x, this.boss.y, classData.color, isCrit ? 8 : 5);
+                        }
+                    }
+                }
+            },
+            
+            spawnEnemy() {
+                const side = Math.floor(Math.random() * 4);
+                let x, y;
+                
+                switch(side) {
+                    case 0: x = Math.random() * this.width; y = -20; break;
+                    case 1: x = this.width + 20; y = Math.random() * this.height; break;
+                    case 2: x = Math.random() * this.width; y = this.height + 20; break;
+                    case 3: x = -20; y = Math.random() * this.height; break;
+                }
+                
+                const difficulty = 1 + (this.level - 1) * 0.2;
+                
+                // Check for demigod spawn (5% chance every 5 floors, once per bracket)
+                if (!this.demigodSpawned && this.level % 5 === 0 && Math.random() < 0.05) {
+                    this.spawnDemigod(x, y);
+                    return;
+                }
+                
+                // Different enemy types based on random roll
+                const roll = Math.random();
+                let enemyType;
+                
+                if (roll < 0.4) {
+                    // Basic chaser (40%)
+                    enemyType = {
+                        type: 'chaser',
+                        size: 12,
+                        speed: 1 + Math.random() * 0.5 * difficulty,
+                        health: 30 * difficulty,
+                        maxHealth: 30 * difficulty,
+                        damage: 5 * difficulty,
+                        essence: Math.floor(10 * difficulty),
+                        color: 1,
+                        behavior: 'melee'
+                    };
+                } else if (roll < 0.65) {
+                    // Fast but weak (25%)
+                    enemyType = {
+                        type: 'runner',
+                        size: 10,
+                        speed: 2.5 * difficulty,
+                        health: 15 * difficulty,
+                        maxHealth: 15 * difficulty,
+                        damage: 3 * difficulty,
+                        essence: Math.floor(15 * difficulty),
+                        color: 2,
+                        behavior: 'melee'
+                    };
+                } else if (roll < 0.85) {
+                    // Slow tank (20%)
+                    enemyType = {
+                        type: 'tank',
+                        size: 16,
+                        speed: 0.6 * difficulty,
+                        health: 60 * difficulty,
+                        maxHealth: 60 * difficulty,
+                        damage: 10 * difficulty,
+                        essence: Math.floor(20 * difficulty),
+                        color: 3,
+                        behavior: 'melee'
+                    };
+                } else {
+                    // Ranged enemy (15%)
+                    enemyType = {
+                        type: 'archer',
+                        size: 11,
+                        speed: 0.8 * difficulty,
+                        health: 25 * difficulty,
+                        maxHealth: 25 * difficulty,
+                        damage: 8 * difficulty,
+                        essence: Math.floor(18 * difficulty),
+                        color: 4,
+                        behavior: 'ranged',
+                        lastShot: 0,
+                        fireRate: 2000,  // Shoots every 2 seconds
+                        projectileSpeed: 4,
+                        range: 300
+                    };
+                }
+                
+                this.enemies.push({
+                    x: x,
+                    y: y,
+                    ...enemyType
+                });
+            },
+            
+            spawnDemigod(x, y) {
+                this.demigodSpawned = true;
+                const difficulty = 1 + (this.level - 1) * 0.2;
+                
+                const demigodNames = ['Demigod of Wrath', 'Demigod of Envy', 'Demigod of Pride'];
+                const name = demigodNames[Math.floor(Math.random() * demigodNames.length)];
+                
+                this.enemies.push({
+                    x: x,
+                    y: y,
+                    type: 'demigod',
+                    name: name,
+                    size: 24,
+                    speed: 1.2 * difficulty,
+                    health: 150 * difficulty,
+                    maxHealth: 150 * difficulty,
+                    damage: 15 * difficulty,
+                    essence: Math.floor(100 * difficulty),
+                    color: 5,  // Special demigod color
+                    behavior: 'melee',
+                    isDemigod: true
+                });
+                
+                this.showLevelTitle(`${name.toUpperCase()} APPEARS!`);
+            },
+            
+            spawnAlly(x, y) {
+                const allClasses = ['priest', 'thief', 'fighter', 'mage'];
+                const randomClass = allClasses[Math.floor(Math.random() * allClasses.length)];
+                const classData = this.classes[randomClass];
+                
+                this.allies.push({
+                    x: x,
+                    y: y,
+                    class: randomClass,
+                    size: 14,
+                    health: classData.maxHealth * 0.8,
+                    maxHealth: classData.maxHealth * 0.8,
+                    damage: classData.damage * 0.7,
+                    speed: 2.5,
+                    fireRate: classData.fireRate * 1.2,
+                    lastShot: 0,
+                    attackType: classData.attackType,
+                    attackRange: classData.attackRange * 0.8
+                });
+                
+                this.showLevelTitle(`${classData.name.toUpperCase()} JOINS YOUR CAUSE!`);
+            },
+            
+            updateAllies() {
+                for (let i = this.allies.length - 1; i >= 0; i--) {
+                    const ally = this.allies[i];
+                    const classData = this.classes[ally.class];
+                    
+                    // Follow player at a distance
+                    const distToPlayer = this.distance(ally, this.player);
+                    if (distToPlayer > 100) {
+                        const angle = Math.atan2(this.player.y - ally.y, this.player.x - ally.x);
+                        ally.x += Math.cos(angle) * ally.speed;
+                        ally.y += Math.sin(angle) * ally.speed;
+                    }
+                    
+                    // Attack enemies
+                    if (this.time - ally.lastShot > ally.fireRate) {
+                        const target = this.enemies.length > 0 ? this.enemies[0] : (this.boss || null);
+                        
+                        if (target) {
+                            const dist = this.distance(ally, target);
+                            if (dist < ally.attackRange) {
+                                if (ally.attackType === 'projectile') {
+                                    const angle = Math.atan2(target.y - ally.y, target.x - ally.x);
+                                    this.projectiles.push({
+                                        x: ally.x,
+                                        y: ally.y,
+                                        vx: Math.cos(angle) * 5,
+                                        vy: Math.sin(angle) * 5,
+                                        size: 5,
+                                        damage: ally.damage,
+                                        pierce: false,
+                                        isCrit: false,
+                                        allyShot: true
+                                    });
+                                }
+                                ally.lastShot = this.time;
+                            }
+                        }
+                    }
+                    
+                    // Remove dead allies
+                    if (ally.health <= 0) {
+                        this.allies.splice(i, 1);
+                        this.createParticles(ally.x, ally.y, '#888', 10);
+                    }
+                }
+            },
+            
+            updateEnemyProjectiles() {
+                for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
+                    const proj = this.enemyProjectiles[i];
+                    
+                    proj.x += proj.vx;
+                    proj.y += proj.vy;
+                    
+                    // Remove if off screen
+                    if (proj.x < -50 || proj.x > this.width + 50 || proj.y < -50 || proj.y > this.height + 50) {
+                        this.enemyProjectiles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Check collision with player
+                    if (this.distance(proj, this.player) < proj.size + this.player.size) {
+                        this.damagePlayer(proj.damage);
+                        this.enemyProjectiles.splice(i, 1);
+                        this.createParticles(this.player.x, this.player.y, '#C41E3A', 5);
+                        continue;
+                    }
+                    
+                    // Check collision with allies
+                    for (let j = this.allies.length - 1; j >= 0; j--) {
+                        const ally = this.allies[j];
+                        if (this.distance(proj, ally) < proj.size + ally.size) {
+                            ally.health -= proj.damage;
+                            this.enemyProjectiles.splice(i, 1);
+                            this.createParticles(ally.x, ally.y, '#C41E3A', 5);
+                            break;
+                        }
+                    }
+                }
+            },
+            
+            spawnLoot(x, y) {
+                // Random chance for loot drops
+                const roll = Math.random();
+                
+                if (roll < 0.3) {
+                    // 30% chance for health drop
+                    this.lootDrops.push({
+                        x: x,
+                        y: y,
+                        type: 'health',
+                        value: 20,
+                        size: 10,
+                        collected: false
+                    });
+                } else if (roll < 0.8) {
+                    // 50% chance for coins
+                    const coinValue = Math.floor(5 + Math.random() * 10);
+                    this.lootDrops.push({
+                        x: x,
+                        y: y,
+                        type: 'coin',
+                        value: coinValue,
+                        size: 8,
+                        collected: false
+                    });
+                }
+                // 20% chance for no drop
+            },
+            
+            updateEnemies() {
+                const realm = this.realms[this.selectedRealm];
+                
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const enemy = this.enemies[i];
+                    
+                    // Apply poison damage
+                    if (enemy.poisoned && enemy.poisonTicks > 0) {
+                        enemy.poisonTicks--;
+                        enemy.health -= enemy.poisonDamage;
+                        if (enemy.poisonTicks === 0) {
+                            enemy.poisoned = false;
+                        }
+                    }
+                    
+                    // Apply burn damage (Cleric: Righteous Flames)
+                    if (enemy.burning && enemy.burnTicks > 0) {
+                        enemy.burnTicks--;
+                        enemy.health -= enemy.burnDamage;
+                        if (enemy.burnTicks === 0) {
+                            enemy.burning = false;
+                        }
+                    }
+                    
+                    // Enemy behavior based on type
+                    if (enemy.behavior === 'ranged') {
+                        // Ranged enemies maintain distance and shoot
+                        const dist = this.distance(this.player, enemy);
+                        
+                        if (dist > enemy.range * 0.8) {
+                            // Too far, move closer
+                            const angle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                            enemy.x += Math.cos(angle) * enemy.speed * 0.5;
+                            enemy.y += Math.sin(angle) * enemy.speed * 0.5;
+                        } else if (dist < enemy.range * 0.5) {
+                            // Too close, back away
+                            const angle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                            enemy.x -= Math.cos(angle) * enemy.speed * 0.5;
+                            enemy.y -= Math.sin(angle) * enemy.speed * 0.5;
+                        }
+                        
+                        // Shoot at player
+                        if (this.time - enemy.lastShot > enemy.fireRate && dist < enemy.range) {
+                            const angle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                            this.enemyProjectiles.push({
+                                x: enemy.x,
+                                y: enemy.y,
+                                vx: Math.cos(angle) * enemy.projectileSpeed,
+                                vy: Math.sin(angle) * enemy.projectileSpeed,
+                                size: 5,
+                                damage: enemy.damage
+                            });
+                            enemy.lastShot = this.time;
+                        }
+                    } else {
+                        // Melee enemies chase player
+                        const angle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                        enemy.x += Math.cos(angle) * enemy.speed;
+                        enemy.y += Math.sin(angle) * enemy.speed;
+                    }
+                    
+                    // Check collision with player (melee only)
+                    if (enemy.behavior !== 'ranged' && this.distance(enemy, this.player) < enemy.size + this.player.size) {
+                        this.damagePlayer(enemy.damage);
+                        if (enemy.behavior === 'melee') {
+                            // Melee enemies die on contact
+                            this.enemies.splice(i, 1);
+                            this.createParticles(enemy.x, enemy.y, '#C41E3A', 5);
+                        }
+                        continue;
+                    }
+                    
+                    // Remove dead enemies
+                    if (enemy.health <= 0) {
+                        this.essence += enemy.essence;
+                        this.totalEssence += enemy.essence;
+                        this.kills++;
+                        
+                        // Demigod special loot and ally spawn
+                        if (enemy.isDemigod) {
+                            // Massive loot drop
+                            for (let j = 0; j < 10; j++) {
+                                const offsetX = (Math.random() - 0.5) * 80;
+                                const offsetY = (Math.random() - 0.5) * 80;
+                                this.lootDrops.push({
+                                    x: enemy.x + offsetX,
+                                    y: enemy.y + offsetY,
+                                    type: Math.random() < 0.7 ? 'coin' : 'health',
+                                    value: Math.random() < 0.7 ? 30 + Math.floor(Math.random() * 50) : 30,
+                                    size: 12,
+                                    collected: false
+                                });
+                            }
+                            
+                            // Spawn ally
+                            this.spawnAlly(enemy.x, enemy.y);
+                        } else {
+                            // Normal loot spawning
+                            this.spawnLoot(enemy.x, enemy.y);
+                        }
+                        
+                        this.enemies.splice(i, 1);
+                        this.createParticles(enemy.x, enemy.y, realm.particleColor, enemy.isDemigod ? 20 : 10);
+                        
+                // Check for level up (not during boss fight)
+                        if (!this.isBossLevel && this.essence >= 100) {
+                            this.levelUp();
+                        }
+                        
+                        // Check for evolution
+                        this.checkForEvolution();
+                    }
+                }
+            },
+            
+            spawnBoss() {
+                this.isBossLevel = true;
+                this.enemies = []; // Clear regular enemies
+                
+                const realm = this.realms[this.selectedRealm];
+                const bossNames = {
+                    pagan: ['THE GREAT STAG', 'THE ANCIENT OAK', 'THE WILD HUNT'],
+                    egyptian: ['ANUBIS', 'SOBEK', 'SEKHMET'],
+                    greek: ['ZEUS', 'ARES', 'HADES']
+                };
+                
+                const name = bossNames[this.selectedRealm][Math.floor(Math.random() * 3)];
+                
+                this.boss = {
+                    x: this.width / 2,
+                    y: this.height / 4,
+                    size: 40,
+                    speed: 0.8,
+                    health: 500 * (1 + this.level * 0.3),
+                    maxHealth: 500 * (1 + this.level * 0.3),
+                    damage: 15 * (1 + this.level * 0.2),
+                    name: name,
+                    phase: 1,
+                    movePattern: 0,
+                    patternTimer: 0
+                };
+                
+                this.showLevelTitle(`${this.boss.name} AWAKENS`);
+            },
+            
+            updateBoss() {
+                if (!this.boss) return;
+                
+                const boss = this.boss;
+                boss.patternTimer++;
+                
+                // Boss movement patterns
+                if (boss.patternTimer < 120) {
+                    // Chase player
+                    const angle = Math.atan2(this.player.y - boss.y, this.player.x - boss.x);
+                    boss.x += Math.cos(angle) * boss.speed;
+                    boss.y += Math.sin(angle) * boss.speed;
+                } else if (boss.patternTimer < 240) {
+                    // Circle around center
+                    const centerX = this.width / 2;
+                    const centerY = this.height / 2;
+                    const angle = boss.patternTimer * 0.05;
+                    const radius = 150;
+                    boss.x = centerX + Math.cos(angle) * radius;
+                    boss.y = centerY + Math.sin(angle) * radius;
+                } else {
+                    boss.patternTimer = 0;
+                }
+                
+                // Keep boss in bounds
+                boss.x = Math.max(boss.size, Math.min(this.width - boss.size, boss.x));
+                boss.y = Math.max(boss.size, Math.min(this.height - boss.size, boss.y));
+                
+                // Check collision with player
+                if (this.distance(boss, this.player) < boss.size + this.player.size) {
+                    this.damagePlayer(boss.damage);
+                }
+                
+                // Check if boss is defeated
+                if (boss.health <= 0) {
+                    this.defeatBoss();
+                }
+            },
+            
+            defeatBoss() {
+                const realm = this.realms[this.selectedRealm];
+                this.createParticles(this.boss.x, this.boss.y, realm.particleColor, 30);
+                this.essence += 200;
+                this.totalEssence += 200;
+                this.kills++;
+                
+                // Boss drops guaranteed loot
+                for (let i = 0; i < 5; i++) {
+                    const offsetX = (Math.random() - 0.5) * 50;
+                    const offsetY = (Math.random() - 0.5) * 50;
+                    this.lootDrops.push({
+                        x: this.boss.x + offsetX,
+                        y: this.boss.y + offsetY,
+                        type: 'coin',
+                        value: 50 + Math.floor(Math.random() * 30),
+                        size: 12,
+                        collected: false
+                    });
+                }
+                
+                // Also drop health
+                this.lootDrops.push({
+                    x: this.boss.x,
+                    y: this.boss.y,
+                    type: 'health',
+                    value: 50,
+                    size: 14,
+                    collected: false
+                });
+                
+                this.boss = null;
+                this.isBossLevel = false;
+                
+                // Auto level up after boss
+                setTimeout(() => {
+                    this.levelUp();
+                }, 1000);
+            },
+            
+            updateProjectiles() {
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const proj = this.projectiles[i];
+                    
+                    proj.x += proj.vx;
+                    proj.y += proj.vy;
+                    
+                    // Remove off-screen projectiles
+                    if (proj.x < 0 || proj.x > this.width || proj.y < 0 || proj.y > this.height) {
+                        this.projectiles.splice(i, 1);
+                    }
+                }
+            },
+            
+            updateParticles() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life--;
+                    p.alpha = p.life / p.maxLife;
+                    
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            },
+            
+            checkCollisions() {
+                const classData = this.classes[this.selectedClass];
+                
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const proj = this.projectiles[i];
+                    let hitSomething = false;
+                    
+                    // Check collision with regular enemies
+                    for (let j = this.enemies.length - 1; j >= 0; j--) {
+                        const enemy = this.enemies[j];
+                        
+                        if (this.distance(proj, enemy) < proj.size + enemy.size) {
+                            enemy.health -= proj.damage;
+                            
+                            // Cleric: Righteous Flames - apply burn DoT
+                            if (proj.righteousFlame && !enemy.burning) {
+                                enemy.burning = true;
+                                enemy.burnTicks = 5;
+                                enemy.burnDamage = this.damage * 0.3;
+                            }
+                            
+                            // Apply poison if thief has the skill
+                            if (this.playerSkills.poisonBlade && this.selectedClass === 'thief' && !enemy.poisoned) {
+                                enemy.poisoned = true;
+                                enemy.poisonTicks = 5;
+                                enemy.poisonDamage = this.damage * 0.2;
+                            }
+                            
+                            // Sorcerer: Chaos Bolt explosion
+                            if (proj.chaosBolt) {
+                                this.createExplosion(enemy.x, enemy.y, 80, proj.damage * 0.5);
+                            }
+                            
+                            this.createParticles(enemy.x, enemy.y, classData.color, proj.isCrit ? 6 : 3);
+                            hitSomething = true;
+                            
+                            // Only break if not piercing
+                            if (!proj.pierce) {
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Remove projectile if it hit something and isn't piercing
+                    if (hitSomething && !proj.pierce) {
+                        this.projectiles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Check collision with boss
+                    if (this.boss && this.projectiles[i]) {
+                        if (this.distance(proj, this.boss) < proj.size + this.boss.size) {
+                            this.boss.health -= proj.damage;
+                            
+                            // Chaos Bolt explosion
+                            if (proj.chaosBolt) {
+                                // Create explosion effect (damages nearby enemies)
+                                this.createExplosion(this.boss.x, this.boss.y, 100, proj.damage * 0.5);
+                            }
+                            
+                            this.createParticles(this.boss.x, this.boss.y, classData.color, proj.isCrit ? 8 : 5);
+                            
+                            // Remove if not piercing
+                            if (!proj.pierce) {
+                                this.projectiles.splice(i, 1);
+                            }
+                        }
+                    }
+                }
+            },
+            
+            createExplosion(x, y, radius, damage) {
+                // Visual explosion
+                this.createParticles(x, y, '#FF6600', 20);
+                
+                // Damage all enemies in radius
+                this.enemies.forEach(enemy => {
+                    if (this.distance({x, y}, enemy) < radius) {
+                        enemy.health -= damage;
+                        this.createParticles(enemy.x, enemy.y, '#FF6600', 5);
+                    }
+                });
+                
+                // Damage boss if in radius
+                if (this.boss && this.distance({x, y}, this.boss) < radius) {
+                    this.boss.health -= damage;
+                }
+            },
+            
+            damagePlayer(damage) {
+                // Knight: Shield Wall - chance to block
+                if (this.evolutionMechanics === 'knight' && Math.random() < 0.2) {
+                    this.createParticles(this.player.x, this.player.y, '#FFD700', 10);
+                    return; // Damage completely blocked
+                }
+                
+                // Arbiter: Divine Barrier - shield absorbs damage first
+                if (this.shieldActive && this.shieldAmount > 0) {
+                    if (this.shieldAmount >= damage) {
+                        this.shieldAmount -= damage;
+                        if (this.shieldAmount <= 0) {
+                            this.shieldActive = false;
+                        }
+                        return;
+                    } else {
+                        damage -= this.shieldAmount;
+                        this.shieldAmount = 0;
+                        this.shieldActive = false;
+                    }
+                }
+                
+                // Apply damage reduction from Steadfast skill or evolution
+                const totalReduction = this.playerSkills.steadfast ? 0.25 : 0;
+                const finalReduction = totalReduction + (this.damageReduction || 0);
+                damage *= (1 - finalReduction);
+                
+                this.health -= damage;
+                
+                if (this.health <= 0) {
+                    this.health = 0;
+                    this.die();
+                }
+            },
+            
+            die() {
+                this.isDead = true;
+                
+                // Meta-progression: Save coins and 20% essence
+                this.persistentCoins += this.coins;
+                this.persistentEssence += Math.floor(this.totalEssence * 0.2);
+                
+                const classData = this.classes[this.selectedClass];
+                const realm = this.realms[this.selectedRealm];
+                
+                const stats = `
+                    Class: ${classData.name}${this.evolution ? ' → ' + classData.evolutions[this.evolution].name : ''}<br>
+                    Realm: ${realm.name}<br>
+                    Floor Reached: ${this.level}<br>
+                    Enemies Defeated: ${this.kills}<br>
+                    Coins Collected: ${this.coins}<br>
+                    Divine Essence Collected: ${this.totalEssence}<br><br>
+                    <span style="color: #FFD700;">⚡ Carried Over: ${this.persistentCoins} coins + ${Math.floor(this.totalEssence * 0.2)} essence</span>
+                `;
+                
+                document.getElementById('deathStats').innerHTML = stats;
+                document.getElementById('deathScreen').classList.add('active');
+            },
+            
+            levelUp() {
+                this.essence -= 100;
+                this.level++;
+                this.isPaused = true;
+                
+                // Reset demigod spawn flag for new floor bracket
+                if (this.level % 5 === 1) {
+                    this.demigodSpawned = false;
+                }
+                
+                // Spawn obstacles for Pagan realm
+                if (this.selectedRealm === 'pagan' && this.level % 3 === 0) {
+                    this.spawnObstacles();
+                }
+                
+                this.showLevelTitle(`FLOOR ${this.level}`);
+                this.showUpgradeScreen();
+            },
+            
+            spawnObstacles() {
+                // Clear old obstacles
+                this.obstacles = [];
+                
+                // Spawn 5-8 obstacles
+                const count = 5 + Math.floor(Math.random() * 4);
+                
+                for (let i = 0; i < count; i++) {
+                    const type = Math.random() < 0.6 ? 'tree' : 'water';
+                    
+                    if (type === 'tree') {
+                        // Trees block movement and projectiles
+                        this.obstacles.push({
+                            x: 100 + Math.random() * (this.width - 200),
+                            y: 100 + Math.random() * (this.height - 200),
+                            size: 40,
+                            type: 'tree',
+                            blocks: true
+                        });
+                    } else {
+                        // Water slows entities
+                        this.obstacles.push({
+                            x: 100 + Math.random() * (this.width - 200),
+                            y: 100 + Math.random() * (this.height - 200),
+                            width: 80 + Math.random() * 60,
+                            height: 80 + Math.random() * 60,
+                            type: 'water',
+                            blocks: false,
+                            slowFactor: 0.5
+                        });
+                    }
+                }
+            },
+            
+            showUpgradeScreen() {
+                const classData = this.classes[this.selectedClass];
+                
+                // Calculate upgrade cost based on level
+                const baseCost = 50;
+                const upgradeCost = baseCost + (this.level - 1) * 20;
+                
+                // Get available skills
+                const classSkills = this.getClassSkills();
+                const generalSkills = this.getGeneralSkills();
+                
+                const selected = [];
+                
+                // Try to get 2 class skills
+                const shuffledClass = classSkills.sort(() => 0.5 - Math.random());
+                for (let i = 0; i < Math.min(2, shuffledClass.length); i++) {
+                    selected.push({ ...shuffledClass[i], category: 'class' });
+                }
+                
+                // Get 1 general skill
+                const shuffledGeneral = generalSkills.sort(() => 0.5 - Math.random());
+                if (shuffledGeneral.length > 0) {
+                    selected.push({ ...shuffledGeneral[0], category: 'general' });
+                }
+                
+                const container = document.getElementById('upgradeOptions');
+                container.innerHTML = '';
+                
+                selected.forEach(upgrade => {
+                    const canAfford = this.coins >= upgradeCost;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'upgrade-card';
+                    if (!canAfford) {
+                        card.style.opacity = '0.5';
+                        card.style.cursor = 'not-allowed';
+                    }
+                    
+                    // Different border colors for categories
+                    if (upgrade.category === 'class') {
+                        card.style.borderColor = classData.color;
+                    } else {
+                        card.style.borderColor = '#7CB342';
+                    }
+                    
+                    const categoryLabel = upgrade.category === 'class' ? 
+                        `<span style="color: ${classData.color}; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">⚔ Class Skill</span>` :
+                        '<span style="color: #7CB342; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">✦ General Skill</span>';
+                    
+                    card.innerHTML = `
+                        ${categoryLabel}
+                        <div class="upgrade-name">${upgrade.name}</div>
+                        <div class="upgrade-description">${upgrade.desc}</div>
+                        <div style="margin-top: 12px; font-size: 14px; color: ${canAfford ? '#FFD700' : '#C41E3A'}; font-weight: 600;">
+                            💰 ${upgradeCost} coins
+                        </div>
+                    `;
+                    
+                    if (canAfford) {
+                        card.onclick = () => {
+                            this.coins -= upgradeCost;
+                            upgrade.apply();
+                            this.hideUpgradeScreen();
+                        };
+                    }
+                    
+                    container.appendChild(card);
+                });
+                
+                // Add "Skip" option
+                const skipCard = document.createElement('div');
+                skipCard.className = 'upgrade-card';
+                skipCard.style.borderColor = '#888';
+                skipCard.innerHTML = `
+                    <span style="color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">⊘ Skip</span>
+                    <div class="upgrade-name">Save Coins</div>
+                    <div class="upgrade-description">Continue without purchasing an upgrade. Save your coins for later.</div>
+                    <div style="margin-top: 12px; font-size: 14px; color: #888; font-weight: 600;">
+                        Free
+                    </div>
+                `;
+                skipCard.onclick = () => {
+                    this.hideUpgradeScreen();
+                };
+                container.appendChild(skipCard);
+                
+                document.getElementById('upgradeScreen').classList.add('active');
+            },
+            
+            getClassSkills() {
+                const classSkills = {
+                    priest: [
+                        { 
+                            name: 'Multi-Shot', 
+                            desc: 'Fire 3 projectiles in a spread pattern',
+                            available: !this.playerSkills.multiShot,
+                            apply: () => this.playerSkills.multiShot = true
+                        },
+                        { 
+                            name: 'Holy Nova', 
+                            desc: 'Emit periodic healing aura around you (+5 HP every 3 sec)',
+                            available: !this.playerSkills.holyNova,
+                            apply: () => this.playerSkills.holyNova = true
+                        },
+                        { 
+                            name: 'Divine Fury', 
+                            desc: '+15 Damage to all attacks',
+                            available: true,
+                            apply: () => this.damage += 15
+                        },
+                        { 
+                            name: 'Blessed Speed', 
+                            desc: '+35% Fire Rate',
+                            available: true,
+                            apply: () => this.fireRate *= 0.65
+                        }
+                    ],
+                    thief: [
+                        { 
+                            name: 'Shadow Strike', 
+                            desc: '25% Critical Hit Chance (2x damage)',
+                            available: !this.playerSkills.shadowStrike,
+                            apply: () => { this.playerSkills.shadowStrike = true; this.critChance = 0.25; }
+                        },
+                        { 
+                            name: 'Poison Blade', 
+                            desc: 'Attacks apply damage over time',
+                            available: !this.playerSkills.poisonBlade,
+                            apply: () => this.playerSkills.poisonBlade = true
+                        },
+                        { 
+                            name: 'Lethal Precision', 
+                            desc: '+20 Damage',
+                            available: true,
+                            apply: () => this.damage += 20
+                        },
+                        { 
+                            name: 'Blade Dance', 
+                            desc: '+40% Attack Speed',
+                            available: true,
+                            apply: () => this.fireRate *= 0.6
+                        }
+                    ],
+                    fighter: [
+                        { 
+                            name: 'Whirlwind', 
+                            desc: 'Melee attacks hit 360 degrees around you',
+                            available: !this.playerSkills.whirlwind,
+                            apply: () => { this.playerSkills.whirlwind = true; this.classes.fighter.attackRange = 100; }
+                        },
+                        { 
+                            name: 'Steadfast', 
+                            desc: 'Take 25% less damage from all sources',
+                            available: !this.playerSkills.steadfast,
+                            apply: () => this.playerSkills.steadfast = true
+                        },
+                        { 
+                            name: 'Battle Fury', 
+                            desc: '+18 Damage',
+                            available: true,
+                            apply: () => this.damage += 18
+                        },
+                        { 
+                            name: 'Warrior\'s Endurance', 
+                            desc: '+60 Max Health',
+                            available: true,
+                            apply: () => { this.maxHealth += 60; this.health += 60; }
+                        }
+                    ],
+                    mage: [
+                        { 
+                            name: 'Spell Pierce', 
+                            desc: 'Projectiles pass through enemies',
+                            available: !this.playerSkills.spellPierce,
+                            apply: () => this.playerSkills.spellPierce = true
+                        },
+                        { 
+                            name: 'Arcane Blast', 
+                            desc: '30% chance to fire an extra projectile',
+                            available: !this.playerSkills.arcaneBlast,
+                            apply: () => this.playerSkills.arcaneBlast = true
+                        },
+                        { 
+                            name: 'Arcane Power', 
+                            desc: '+22 Damage',
+                            available: true,
+                            apply: () => this.damage += 22
+                        },
+                        { 
+                            name: 'Rapid Casting', 
+                            desc: '+40% Fire Rate',
+                            available: true,
+                            apply: () => this.fireRate *= 0.6
+                        }
+                    ]
+                };
+                
+                return classSkills[this.selectedClass].filter(skill => skill.available);
+            },
+            
+            getGeneralSkills() {
+                return [
+                    { 
+                        name: 'Loot Magnet', 
+                        desc: 'Greatly increase pickup range (+100 range)',
+                        type: 'general',
+                        apply: () => { this.lootMagnetRange += 100; this.playerSkills.magnetLevel++; }
+                    },
+                    { 
+                        name: 'Swift Movement', 
+                        desc: '+20% Move Speed',
+                        type: 'general',
+                        apply: () => { this.moveSpeed *= 1.2; this.playerSkills.speedBoosts++; }
+                    },
+                    { 
+                        name: 'Divine Vitality', 
+                        desc: '+35 Max Health',
+                        type: 'general',
+                        apply: () => { this.maxHealth += 35; this.health += 35; }
+                    },
+                    { 
+                        name: 'Essence Attunement', 
+                        desc: '+50% Essence gain from kills',
+                        type: 'general',
+                        apply: () => { this.playerSkills.essenceBoosts++; }
+                    },
+                    { 
+                        name: 'Coin Fortune', 
+                        desc: '+50% Coin value from drops',
+                        type: 'general',
+                        apply: () => { /* Will implement in loot spawning */ }
+                    }
+                ];
+            },
+            
+            hideUpgradeScreen() {
+                document.getElementById('upgradeScreen').classList.remove('active');
+                this.isPaused = false;
+                this.updateTracker();
+            },
+            
+            createParticles(x, y, color, count) {
+                // Use realm particle color if no color specified
+                if (!color && this.selectedRealm) {
+                    color = this.realms[this.selectedRealm].particleColor;
+                }
+                
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: 3 + Math.random() * 3,
+                        color: color || '#D4AF37',
+                        life: 30,
+                        maxLife: 30,
+                        alpha: 1
+                    });
+                }
+            },
+            
+            distance(a, b) {
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            },
+            
+            updateUI() {
+                document.getElementById('floorDisplay').textContent = this.level;
+                document.getElementById('essenceDisplay').textContent = this.essence;
+                document.getElementById('coinsDisplay').textContent = this.coins;
+                
+                const healthPercent = (this.health / this.maxHealth) * 100;
+                document.getElementById('healthFill').style.width = healthPercent + '%';
+                document.getElementById('healthText').textContent = `${Math.ceil(this.health)} / ${this.maxHealth}`;
+            },
+            
+            render() {
+                const realm = this.realms[this.selectedRealm];
+                const classData = this.classes[this.selectedClass];
+                
+                // Clear canvas with realm-specific background
+                this.ctx.fillStyle = realm.bgColor;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                // Draw realm-specific grid pattern
+                this.ctx.strokeStyle = realm.gridColor;
+                this.ctx.lineWidth = 1;
+                for (let i = 0; i < this.width; i += 40) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(i, 0);
+                    this.ctx.lineTo(i, this.height);
+                    this.ctx.stroke();
+                }
+                for (let i = 0; i < this.height; i += 40) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, i);
+                    this.ctx.lineTo(this.width, i);
+                    this.ctx.stroke();
+                }
+                
+                // Draw melee attack effects
+                this.meleeAttacks.forEach(attack => {
+                    const alpha = attack.life / attack.maxLife;
+                    this.ctx.globalAlpha = alpha * 0.3;
+                    this.ctx.fillStyle = classData.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(attack.x, attack.y, attack.range, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Ring effect
+                    this.ctx.globalAlpha = alpha * 0.8;
+                    this.ctx.strokeStyle = classData.color;
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(attack.x, attack.y, attack.range, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                });
+                this.ctx.globalAlpha = 1;
+                
+                // Draw particles
+                this.particles.forEach(p => {
+                    this.ctx.globalAlpha = p.alpha;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                });
+                this.ctx.globalAlpha = 1;
+                
+                // Draw loot drops
+                this.lootDrops.forEach(drop => {
+                    if (drop.type === 'coin') {
+                        // Coin - golden circle
+                        this.ctx.fillStyle = '#FFD700';
+                        this.ctx.shadowColor = '#FFD700';
+                        this.ctx.shadowBlur = 8;
+                        this.ctx.beginPath();
+                        this.ctx.arc(drop.x, drop.y, drop.size, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        
+                        // Inner detail
+                        this.ctx.fillStyle = '#FFA500';
+                        this.ctx.beginPath();
+                        this.ctx.arc(drop.x, drop.y, drop.size * 0.6, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.shadowBlur = 0;
+                    } else if (drop.type === 'health') {
+                        // Health - green plus/cross
+                        this.ctx.fillStyle = '#4CAF50';
+                        this.ctx.shadowColor = '#4CAF50';
+                        this.ctx.shadowBlur = 8;
+                        
+                        // Horizontal bar
+                        this.ctx.fillRect(drop.x - drop.size, drop.y - drop.size/3, drop.size * 2, drop.size * 0.66);
+                        // Vertical bar
+                        this.ctx.fillRect(drop.x - drop.size/3, drop.y - drop.size, drop.size * 0.66, drop.size * 2);
+                        this.ctx.shadowBlur = 0;
+                    }
+                });
+                
+                // Draw projectiles with class color
+                this.projectiles.forEach(proj => {
+                    // Chaos Bolt projectiles are orange/red
+                    if (proj.chaosBolt) {
+                        this.ctx.fillStyle = '#FF6600';
+                        this.ctx.shadowColor = '#FF6600';
+                    } else if (proj.righteousFlame) {
+                        this.ctx.fillStyle = '#FFD700';
+                        this.ctx.shadowColor = '#FFD700';
+                    } else {
+                        this.ctx.fillStyle = classData.color;
+                        this.ctx.shadowColor = classData.color;
+                    }
+                    
+                    this.ctx.shadowBlur = proj.isCrit ? 20 : 10;
+                    
+                    // Larger size for crits, piercing, and special projectiles
+                    let size = proj.size;
+                    if (proj.pierce) size *= 1.5;
+                    if (proj.isCrit) size *= 1.3;
+                    if (proj.chaosBolt) size *= 1.4;
+                    
+                    this.ctx.fillRect(proj.x - size/2, proj.y - size/2, size, size);
+                    
+                    // Extra glow for pierce or chaos
+                    if (proj.pierce || proj.chaosBolt) {
+                        this.ctx.globalAlpha = 0.3;
+                        this.ctx.fillRect(proj.x - size, proj.y - size, size * 2, size * 2);
+                        this.ctx.globalAlpha = 1;
+                    }
+                });
+                this.ctx.shadowBlur = 0;
+                
+                // Draw obstacles
+                this.obstacles.forEach(obstacle => {
+                    if (obstacle.type === 'tree') {
+                        // Tree - brown trunk with green canopy
+                        this.ctx.fillStyle = '#5C4033';
+                        this.ctx.fillRect(obstacle.x - obstacle.size/4, obstacle.y - obstacle.size/4, obstacle.size/2, obstacle.size/2);
+                        
+                        this.ctx.fillStyle = '#2D5016';
+                        this.ctx.shadowColor = '#2D5016';
+                        this.ctx.shadowBlur = 10;
+                        this.ctx.beginPath();
+                        this.ctx.arc(obstacle.x, obstacle.y, obstacle.size * 0.7, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.shadowBlur = 0;
+                    } else if (obstacle.type === 'water') {
+                        // Water - blue transparent rectangle
+                        this.ctx.globalAlpha = 0.4;
+                        this.ctx.fillStyle = '#4A90E2';
+                        this.ctx.fillRect(obstacle.x - obstacle.width/2, obstacle.y - obstacle.height/2, obstacle.width, obstacle.height);
+                        
+                        // Wavy effect
+                        this.ctx.globalAlpha = 0.2;
+                        this.ctx.fillStyle = '#6BB6FF';
+                        const time = Date.now() / 1000;
+                        for (let i = 0; i < 3; i++) {
+                            const waveY = Math.sin(time + i) * 10;
+                            this.ctx.fillRect(
+                                obstacle.x - obstacle.width/2,
+                                obstacle.y - obstacle.height/2 + i * (obstacle.height/3) + waveY,
+                                obstacle.width,
+                                obstacle.height/6
+                            );
+                        }
+                        this.ctx.globalAlpha = 1;
+                    }
+                });
+                
+                // Draw realm-specific enemies with type variations
+                this.enemies.forEach(enemy => {
+                    let bodyColor = realm.enemyColor;
+                    let accentColor = realm.enemyAccent;
+                    
+                    // Demigod special rendering
+                    if (enemy.isDemigod) {
+                        bodyColor = '#9400D3';  // Purple for demigods
+                        accentColor = '#FF00FF';
+                        
+                        // Pulsing glow
+                        const pulse = 0.5 + Math.sin(Date.now() / 200) * 0.5;
+                        this.ctx.shadowColor = '#FF00FF';
+                        this.ctx.shadowBlur = 30 * pulse;
+                    } else if (enemy.behavior === 'ranged') {
+                        // Ranged enemy - different accent (archer aesthetic)
+                        accentColor = '#00D9FF';
+                    } else if (enemy.color === 2) {
+                        // Runner - lighter
+                        bodyColor = this.lightenColor(realm.enemyColor, 30);
+                    } else if (enemy.color === 3) {
+                        // Tank - darker
+                        bodyColor = this.darkenColor(realm.enemyColor, 30);
+                    }
+                    
+                    // Body
+                    this.ctx.fillStyle = bodyColor;
+                    this.ctx.fillRect(enemy.x - enemy.size/2, enemy.y - enemy.size/2, enemy.size, enemy.size);
+                    
+                    // Accent
+                    this.ctx.fillStyle = accentColor;
+                    this.ctx.fillRect(enemy.x - enemy.size/2, enemy.y - enemy.size/2, enemy.size, enemy.size/3);
+                    
+                    // Poison visual effect
+                    if (enemy.poisoned) {
+                        this.ctx.globalAlpha = 0.5;
+                        this.ctx.fillStyle = '#00FF00';
+                        this.ctx.fillRect(enemy.x - enemy.size/2 - 2, enemy.y - enemy.size/2 - 2, enemy.size + 4, enemy.size + 4);
+                        this.ctx.globalAlpha = 1;
+                    }
+                    
+                    // Burn visual effect (Righteous Flames)
+                    if (enemy.burning) {
+                        this.ctx.globalAlpha = 0.6;
+                        this.ctx.fillStyle = '#FF4500';
+                        this.ctx.shadowColor = '#FF4500';
+                        this.ctx.shadowBlur = 15;
+                        this.ctx.fillRect(enemy.x - enemy.size/2 - 2, enemy.y - enemy.size/2 - 2, enemy.size + 4, enemy.size + 4);
+                        this.ctx.shadowBlur = 0;
+                        this.ctx.globalAlpha = 1;
+                    }
+                    
+                    // Health bar
+                    const healthPercent = enemy.health / enemy.maxHealth;
+                    this.ctx.fillStyle = '#1A1A2E';
+                    this.ctx.fillRect(enemy.x - enemy.size/2, enemy.y - enemy.size - 5, enemy.size, 3);
+                    this.ctx.fillStyle = '#C41E3A';
+                    this.ctx.fillRect(enemy.x - enemy.size/2, enemy.y - enemy.size - 5, enemy.size * healthPercent, 3);
+                    
+                    // Demigod name above
+                    if (enemy.isDemigod) {
+                        this.ctx.fillStyle = '#FF00FF';
+                        this.ctx.font = '12px "Cinzel", serif';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(enemy.name, enemy.x, enemy.y - enemy.size - 12);
+                    }
+                });
+                this.ctx.shadowBlur = 0;
+                // Draw boss
+                if (this.boss) {
+                    const boss = this.boss;
+                    
+                    // Boss body with glow
+                    this.ctx.shadowColor = realm.particleColor;
+                    this.ctx.shadowBlur = 20;
+                    this.ctx.fillStyle = this.darkenColor(realm.enemyColor, 20);
+                    this.ctx.fillRect(boss.x - boss.size/2, boss.y - boss.size/2, boss.size, boss.size);
+                    
+                    // Boss accent
+                    this.ctx.fillStyle = realm.particleColor;
+                    this.ctx.fillRect(boss.x - boss.size/2, boss.y - boss.size/2, boss.size, boss.size/4);
+                    this.ctx.shadowBlur = 0;
+                    
+                    // Boss health bar (larger, at top of screen)
+                    const healthPercent = boss.health / boss.maxHealth;
+                    const barWidth = 400;
+                    const barX = this.width / 2 - barWidth / 2;
+                    const barY = 50;
+                    
+                    // Boss name
+                    this.ctx.fillStyle = realm.particleColor;
+                    this.ctx.font = '16px "Cinzel", serif';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(boss.name, this.width / 2, barY - 10);
+                    
+                    // Health bar background
+                    this.ctx.fillStyle = '#1A1A2E';
+                    this.ctx.fillRect(barX, barY, barWidth, 12);
+                    
+                    // Health bar fill
+                    this.ctx.fillStyle = '#C41E3A';
+                    this.ctx.fillRect(barX, barY, barWidth * healthPercent, 12);
+                    
+                    // Health bar border
+                    this.ctx.strokeStyle = realm.particleColor;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(barX, barY, barWidth, 12);
+                    
+                    this.ctx.textAlign = 'left';
+                }
+                
+                // Draw enemy projectiles
+                this.enemyProjectiles.forEach(proj => {
+                    this.ctx.fillStyle = '#C41E3A';
+                    this.ctx.shadowColor = '#C41E3A';
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.fillRect(proj.x - proj.size/2, proj.y - proj.size/2, proj.size, proj.size);
+                });
+                this.ctx.shadowBlur = 0;
+                
+                // Draw allies
+                this.allies.forEach(ally => {
+                    const allyClassData = this.classes[ally.class];
+                    
+                    // Body with glow
+                    this.ctx.shadowColor = allyClassData.color;
+                    this.ctx.shadowBlur = 15;
+                    this.ctx.fillStyle = '#C9A961';  // Golden ally color
+                    this.ctx.fillRect(ally.x - ally.size/2, ally.y - ally.size/2, ally.size, ally.size);
+                    
+                    // Class accent
+                    this.ctx.fillStyle = allyClassData.color;
+                    this.ctx.fillRect(ally.x - ally.size/2, ally.y - ally.size/2, ally.size, ally.size/3);
+                    this.ctx.shadowBlur = 0;
+                    
+                    // Health bar
+                    const healthPercent = ally.health / ally.maxHealth;
+                    this.ctx.fillStyle = '#1A1A2E';
+                    this.ctx.fillRect(ally.x - ally.size/2, ally.y - ally.size - 5, ally.size, 3);
+                    this.ctx.fillStyle = '#4CAF50';
+                    this.ctx.fillRect(ally.x - ally.size/2, ally.y - ally.size - 5, ally.size * healthPercent, 3);
+                });
+                
+                // Draw player with class styling
+                this.ctx.save();
+                this.ctx.translate(this.player.x, this.player.y);
+                
+                // Draw Divine Barrier shield if active
+                if (this.shieldActive && this.shieldAmount > 0) {
+                    this.ctx.globalAlpha = 0.4;
+                    this.ctx.fillStyle = '#00D9FF';
+                    this.ctx.shadowColor = '#00D9FF';
+                    this.ctx.shadowBlur = 20;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, this.player.size + 12, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.shadowBlur = 0;
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                // Draw loot magnet range indicator if upgraded
+                if (this.playerSkills.magnetLevel > 0) {
+                    this.ctx.globalAlpha = 0.1;
+                    this.ctx.fillStyle = '#FFD700';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, this.lootMagnetRange, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                this.ctx.rotate(this.player.angle);
+                
+                // Base body
+                this.ctx.fillStyle = '#E8E4DC';
+                this.ctx.fillRect(-this.player.size/2, -this.player.size/2, this.player.size, this.player.size);
+                
+                // Class-specific accent
+                this.ctx.fillStyle = classData.color;
+                this.ctx.fillRect(-this.player.size/2 - 2, -this.player.size/2, 4, this.player.size);
+                
+                // Evolution glow (if evolved)
+                if (this.player.evolved) {
+                    const pulse = 0.6 + Math.sin(Date.now() / 300) * 0.4;
+                    this.ctx.shadowColor = '#00D9FF';
+                    this.ctx.shadowBlur = 25 * pulse;
+                    this.ctx.globalAlpha = 0.5 * pulse;
+                    this.ctx.fillStyle = '#00D9FF';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, this.player.size * 0.8, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                // Class glow
+                this.ctx.shadowColor = classData.color;
+                this.ctx.shadowBlur = 15;
+                this.ctx.fillStyle = classData.color;
+                this.ctx.fillRect(-this.player.size/4, -this.player.size/4, this.player.size/2, this.player.size/2);
+                this.ctx.shadowBlur = 0;
+                
+                this.ctx.restore();
+            },
+            
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace("#",""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+                    (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
+                    .toString(16).slice(1);
+            },
+            
+            darkenColor(color, percent) {
+                const num = parseInt(color.replace("#",""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) - amt;
+                const G = (num >> 8 & 0x00FF) - amt;
+                const B = (num & 0x0000FF) - amt;
+                return "#" + (0x1000000 + (R>0?R:0)*0x10000 +
+                    (G>0?G:0)*0x100 + (B>0?B:0))
+                    .toString(16).slice(1);
+            }
+        };
+        
+        // Start game when page loads
+        window.addEventListener('load', () => {
+            game.init();
+        });
+    </script>
+</body>
+</html>

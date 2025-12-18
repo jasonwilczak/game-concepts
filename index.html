@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Demos - Retro Arcade</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a0033 0%, #0d1b2a 50%, #1a0033 100%);
+            color: #00ff88;
+            font-family: 'VT323', monospace;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Retro scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        /* Retro grid background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(138, 43, 226, 0.05) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(138, 43, 226, 0.05) 2px, transparent 2px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 20px;
+            background: rgba(138, 43, 226, 0.1);
+            border: 3px solid #8a2be2;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.5),
+                        inset 0 0 30px rgba(138, 43, 226, 0.1);
+            animation: glow-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(138, 43, 226, 0.5), inset 0 0 30px rgba(138, 43, 226, 0.1); }
+            50% { box-shadow: 0 0 50px rgba(138, 43, 226, 0.8), inset 0 0 50px rgba(138, 43, 226, 0.2); }
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 48px;
+            color: #ff00ff;
+            text-shadow: 
+                0 0 10px #ff00ff,
+                0 0 20px #ff00ff,
+                0 0 30px #ff00ff,
+                3px 3px 0 #00ff88;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            font-size: 28px;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+            letter-spacing: 2px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .demo-card {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(0, 255, 136, 0.1) 100%);
+            border: 3px solid #8a2be2;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 0, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .demo-card:hover::before {
+            animation: shine 1.5s ease infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .demo-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: #00ff88;
+            box-shadow: 
+                0 10px 40px rgba(138, 43, 226, 0.6),
+                0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .demo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-status {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-transform: uppercase;
+        }
+
+        .status-live {
+            background: rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            border: 2px solid #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-wip {
+            background: rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+            border: 2px solid #ffa500;
+        }
+
+        .demo-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            color: #ff00ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #ff00ff;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-description {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #00ff88;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-item {
+            font-size: 18px;
+            color: #9370db;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meta-item::before {
+            content: '▸';
+            color: #00ff88;
+        }
+
+        .demo-link {
+            display: inline-block;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            background: linear-gradient(135deg, #8a2be2 0%, #ff00ff 100%);
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-link:hover {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            box-shadow: 0 6px 25px rgba(0, 255, 136, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .demo-link:active {
+            transform: translateY(0);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 22px;
+            color: #9370db;
+            border-top: 2px solid #8a2be2;
+            margin-top: 40px;
+        }
+
+        footer a {
+            color: #ff00ff;
+            text-decoration: none;
+            text-shadow: 0 0 10px #ff00ff;
+            transition: all 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 28px;
+                letter-spacing: 2px;
+            }
+
+            .subtitle {
+                font-size: 20px;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .demo-link {
+                font-size: 12px;
+                padding: 12px 20px;
+            }
+        }
+
+        /* Retro cursor */
+        body {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="%2300ff88" opacity="0.6"/></svg>'), auto;
+        }
+
+        .demo-card, .demo-link {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="%23ff00ff" opacity="0.8"/></svg>'), pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>◢ GAME DEMOS ◣</h1>
+            <p class="subtitle">[ INSERT COIN TO PLAY ]</p>
+        </header>
+
+        <div class="demo-grid">
+            <!-- The Last God Demo -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <div class="demo-icon">⚔️</div>
+                    <span class="demo-status status-live">● LIVE</span>
+                </div>
+                <h2>The Last God</h2>
+                <p class="demo-description">
+                    A 2D roguelike auto-shooter where you descend through mythological realms. 
+                    Choose from 4 classes, evolve at 500 essence, and face demigods!
+                </p>
+                <div class="demo-meta">
+                    <span class="meta-item">Roguelike</span>
+                    <span class="meta-item">Auto-Shooter</span>
+                    <span class="meta-item">HTML5</span>
+                </div>
+                <a href="./the-last-god/the-last-god-prototype.html" class="demo-link">▶ Play Now</a>
+            </div>
+
+            <!-- Placeholder for future demos -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <div class="demo-icon">🎮</div>
+                    <span class="demo-status status-wip">WIP</span>
+                </div>
+                <h2>Coming Soon</h2>
+                <p class="demo-description">
+                    More retro-inspired games are on the way! 
+                    Check back soon for new demos and experiments.
+                </p>
+                <div class="demo-meta">
+                    <span class="meta-item">TBA</span>
+                    <span class="meta-item">In Development</span>
+                </div>
+                <a href="#" class="demo-link" style="opacity: 0.5; pointer-events: none;">▶ Coming Soon</a>
+            </div>
+
+            <!-- Another placeholder -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <div class="demo-icon">🕹️</div>
+                    <span class="demo-status status-wip">WIP</span>
+                </div>
+                <h2>Future Project</h2>
+                <p class="demo-description">
+                    This slot is reserved for your next amazing game prototype. 
+                    The arcade is always expanding!
+                </p>
+                <div class="demo-meta">
+                    <span class="meta-item">TBA</span>
+                    <span class="meta-item">Prototype</span>
+                </div>
+                <a href="#" class="demo-link" style="opacity: 0.5; pointer-events: none;">▶ Coming Soon</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built with 💜 and 💚 | <a href="https://github.com/jasonwilczak" target="_blank">GitHub</a></p>
+            <p style="margin-top: 15px; font-size: 18px;">Ready Player One? Let's go! 🚀</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add some retro interactivity
+        const cards = document.querySelectorAll('.demo-card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Subtle audio effect could go here
+                card.style.transition = 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            });
+        });
+
+        // Konami code easter egg (up, up, down, down, left, right, left, right, B, A)
+        let konamiCode = [];
+        const konamiPattern = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        
+        document.addEventListener('keydown', (e) => {
+            konamiCode.push(e.key);
+            konamiCode.splice(-konamiPattern.length - 1, konamiCode.length - konamiPattern.length);
+            
+            if (konamiCode.join('').includes(konamiPattern.join(''))) {
+                document.body.style.animation = 'rainbow 2s linear infinite';
+                setTimeout(() => {
+                    document.body.style.animation = '';
+                }, 5000);
+            }
+        });
+
+        // Add rainbow animation for easter egg
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes rainbow {
+                0% { filter: hue-rotate(0deg); }
+                100% { filter: hue-rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
